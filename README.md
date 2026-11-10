@@ -4,10 +4,13 @@ A native calendar and task app for reMarkable 2, synced directly with your own
 Nextcloud server over HTTPS/CalDAV. It uses XOVI and AppLoad, with a static ARMv7
 backend and a grayscale Qt Quick interface.
 
-![Week view with fictional example events](docs/images/week.png)
+| Week timeline | Day timeline |
+| --- | --- |
+| ![Week view with black hour labels](docs/images/week.png) | ![Day view with black hour labels](docs/images/day.png) |
 
-[Day view](docs/images/day.png) · [Tasks](docs/images/tasks.png) ·
-[Event editor and keyboard](docs/images/keyboard.png)
+| Tasks | Event editor and keyboard |
+| --- | --- |
+| ![Tasks grouped by scheduled date](docs/images/tasks.png) | ![Editor with the larger US mobile keyboard](docs/images/keyboard.png) |
 
 ## Features
 
@@ -52,8 +55,9 @@ install or replace XOVI, AppLoad, firmware, or system libraries.
 
 ## Install
 
-Download the RM2 ARMv7 archive and `SHA256SUMS` from the repository's Releases page,
-then follow [INSTALL.md](INSTALL.md). A ready-to-install bundle, installer, licenses
+Download the RM2 ARMv7 archive and `SHA256SUMS` from [GitHub Releases](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/latest).
+Follow [the installation guide](INSTALL.md) for tablet setup, direct install,
+Nextcloud sign-in, source builds, or a local Vellum install. A ready-to-install bundle, installer, licenses
 and these instructions are included in the archive. No compiler is needed to use it.
 
 To build it yourself, see [Build from source](#build-from-source).
@@ -96,7 +100,7 @@ optional setup/lifecycle helpers. `qmltestrunner` is used by the UI tests.
 
 ```sh
 ./scripts/build.sh
-./scripts/package.sh 0.1.0
+./scripts/package.sh 0.1.8
 ```
 
 If necessary, specify executable locations:

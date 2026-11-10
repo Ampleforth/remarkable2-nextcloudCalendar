@@ -1,14 +1,34 @@
 # Installation on reMarkable 2
 
-## 1. Prepare the tablet
+Use the AppLoad bundle for a direct install or the signed local APK if you
+already use Vellum. Both downloads are on the [v0.1.8 release page](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/tag/v0.1.8).
 
-Install compatible XOVI, Qt resource rebuilder, and ARM32 AppLoad builds using their
-upstream instructions. Confirm that AppLoad opens before continuing. The app was
+## 1. Prepare the tablet and computer
+
+You need a reMarkable 2, root SSH access to the tablet, and an HTTPS Nextcloud
+account with at least one calendar or task list. Connect the tablet to Wi-Fi
+for sync. Run computer-side commands in a Linux or macOS terminal, or in
+Ubuntu under WSL on Windows. The installer uses Bash, OpenSSH (`ssh` and
+`scp`), and `tar`.
+
+Install [XOVI and its Qt resource rebuilder](https://github.com/asivery/xovi)
+and [ARM32 AppLoad](https://github.com/asivery/rm-appload) builds that match
+your tablet firmware. Follow their upstream setup instructions first. Confirm that AppLoad opens before continuing. The app was
 tested with RM2 firmware 3.27.3.0, Qt 6.8.2 and AppLoad 0.5.3.
 
 Set up SSH access to the tablet. The commands below use `rm2` as an example SSH
 alias; replace it with your own alias or `root@TABLET_ADDRESS`. No particular
-network address, server, jump host or SSH key is required by this app.
+network address, server, jump host or SSH key is required by this app. If you
+use a USB connection, the tablet normally uses `10.11.99.1` over USB.
+
+From your computer, verify the connection before installing:
+
+```sh
+ssh rm2 'uname -m && id -u && test -f /home/root/xovi/extensions.d/appload.so'
+```
+
+Expect `armv7l` and `0` on separate lines, followed by a successful exit.
+Check your SSH target and AppLoad setup if the command fails.
 
 ## 2. Verify and unpack the download
 
@@ -17,8 +37,8 @@ with `sha256sum` and `tar`, in the download directory:
 
 ```sh
 sha256sum -c SHA256SUMS
-tar -xzf remarkable2-nextcloudCalendar-v0.1.0-rm2-armv7.tar.gz
-cd remarkable2-nextcloudCalendar-v0.1.0-rm2-armv7
+tar -xzf remarkable2-nextcloudCalendar-v0.1.8-rm2-armv7.tar.gz
+cd remarkable2-nextcloudCalendar-v0.1.8-rm2-armv7
 ```
 
 Use the version matching the archive you downloaded. On macOS, use
@@ -54,9 +74,18 @@ AppLoad; its image cache can retain an earlier icon until the tablet UI reloads.
 
 ## 4. Enter your connection
 
-In Settings, enter your own HTTPS Nextcloud base URL, username and app password.
-Generate the app password in your Nextcloud account's Security settings. Tap
-**Save & sync**. Select the calendars and task lists to display.
+1. Sign in to Nextcloud in a browser. In your account's **Personal settings →
+   Security**, find the devices and sessions section. Create an app password
+   named **reMarkable Calendar** and copy it when Nextcloud displays it.
+   [Nextcloud session management](https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html)
+2. In **Nextcloud Calendar → Settings**, enter your Nextcloud HTTPS base URL,
+   including any installation subpath, and your Nextcloud username. For example,
+   use `https://cloud.example.com/nextcloud` if that is where you sign in.
+3. Enter the app password, tap **Save & sync**, and wait for sync to finish.
+   Enable the calendars and task lists you want to see in Settings.
+4. In a writable test calendar, create a test event. Tap **Sync** and confirm it
+   appears in Nextcloud. If you use Tasks, repeat with a test task. Saving on the
+   tablet queues the change. **Sync** sends the queued changes to Nextcloud.
 
 Credentials are saved only on the tablet, at:
 
@@ -66,6 +95,66 @@ Credentials are saved only on the tablet, at:
 
 The app creates this file with permissions `600`. A saved password is represented
 by a placeholder in Settings; it is never returned by the connection API.
+
+## Install a local Vellum package
+
+This is a locally signed package for the reMarkable 2. It requires `rm2` and
+`appload>=0.5.3` in Vellum. Install Vellum and compatible AppLoad packages
+using [Vellum's setup guide](https://github.com/vellum-dev/vellum). reManager
+can set up Vellum and install its dependencies. The local APK install runs in
+the tablet terminal. [reManager](https://github.com/rmitchellscott/reManager)
+
+1. Download `nextcloud-calendar-0.1.8-r0.apk`, its `.rsa.pub` public key, and
+   `VELLUM-SHA256SUMS` from the same release. Verify with
+   `sha256sum -c VELLUM-SHA256SUMS` in your downloads folder.
+2. Close Nextcloud Calendar. If you previously used the manual installer, move
+   `/home/root/xovi/exthome/appload/nextcloud-calendar` to a backup folder
+   outside AppLoad before switching to Vellum. Keep your config and state files.
+3. Transfer the APK and its public key to `/home/root/` on the tablet using SSH
+   file transfer or reManager's file browser.
+4. In the tablet terminal, replace `PACKAGE-KEY.rsa.pub` with the downloaded key
+   filename and run:
+
+   ```sh
+   cp /home/root/PACKAGE-KEY.rsa.pub /home/root/.vellum/etc/apk/keys/
+   /home/root/.vellum/bin/vellum add /home/root/nextcloud-calendar-0.1.8-r0.apk
+   ```
+
+5. Reload AppLoad, open Nextcloud Calendar, and connect your account as above.
+   Update by installing a newer signed APK. Remove it with
+   `vellum del nextcloud-calendar`.
+
+The APK signature and bundle contents were checked locally. The manual bundle
+was tested on the tablet. Catalog installation requires a separate Vellum
+submission and review. Once listed, the same catalog entry serves reManager.
+
+## Build and install from source
+
+On your computer, install Git, [Go 1.25 or later](https://go.dev/dl/), Qt 6
+resource tools, librsvg's `rsvg-convert`, and Python 3. For example, on Ubuntu
+or Ubuntu under WSL, install the non-Go build tools with:
+
+```sh
+sudo apt update
+sudo apt install git openssh-client qt6-base-dev-tools librsvg2-bin python3
+```
+
+Clone the release tag, confirm that `rcc` is from Qt 6, and build:
+
+```sh
+git clone --branch v0.1.8 https://github.com/Ampleforth/remarkable2-nextcloudCalendar.git
+cd remarkable2-nextcloudCalendar
+go version
+/usr/lib/qt6/libexec/rcc --version
+RCC=/usr/lib/qt6/libexec/rcc ./scripts/build.sh
+./scripts/package.sh 0.1.8
+```
+
+If Qt is installed elsewhere, set `RCC` to the actual Qt 6 compiler path.
+The build runs Go tests and cross-compiles the static ARMv7 backend. Check
+`dist/nextcloud-calendar/` for the manifest, icon, resources, and
+`backend/entry`. The `release/` directory contains the archive and checksums.
+Follow the archive installation steps above to deploy it.
 
 ## Timezone and manual configuration
 
@@ -92,7 +181,8 @@ file, which you can then transfer to the tablet.
 
 ## Updates and removal
 
-Use the same installer for updates. Keep your backup until the new version is
+Download the new archive and checksum, close the running app, and repeat the
+install and reload steps. Keep your backup until the new version is
 working. Backups are stored under:
 
 ```text
@@ -109,6 +199,11 @@ If you stop using the app, revoke its app password in Nextcloud's Security setti
 
 ## Troubleshooting
 
+- **SSH times out:** check the tablet is awake, verify the address or alias, and
+  try USB if Wi-Fi SSH is unavailable.
+- **Checksum mismatch:** download the archive and checksum again from the same release.
+- **App opens blank or still shows the old UI:** close AppLoad apps and tap
+  **Reload**. Verify the bundle has the four expected files and executable backend.
 - **AppLoad missing:** install compatible XOVI/AppLoad dependencies first.
 - **Wrong architecture:** this archive is ARMv7 for RM2, not ARM64.
 - **Cannot connect:** verify Wi-Fi, the HTTPS base URL, username, app password,
