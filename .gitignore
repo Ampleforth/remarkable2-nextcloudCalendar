@@ -1,0 +1,11 @@
+/dist/
+/release/
+/config.json
+/state.json
+/nextcloud-calendar
+*.env
+*.pem
+*.key
+__pycache__/
+*.pyc
+.DS_Store

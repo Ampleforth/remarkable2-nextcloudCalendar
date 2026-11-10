@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="qml/Main.qml">../qml/Main.qml</file>
+    <file alias="qml/Action.qml">../qml/Action.qml</file>
+    <file alias="qml/Field.qml">../qml/Field.qml</file>
+    <file alias="qml/ToolbarButton.qml">../qml/ToolbarButton.qml</file>
+    <file alias="qml/CalendarGesture.qml">../qml/CalendarGesture.qml</file>
+    <file alias="qml/EdgeBack.qml">../qml/EdgeBack.qml</file>
+    <file alias="qml/TimelineView.qml">../qml/TimelineView.qml</file>
+    <file alias="qml/Timeline.js">../qml/Timeline.js</file>
+    <file alias="qml/ChoicePicker.qml">../qml/ChoicePicker.qml</file>
+    <file alias="qml/TouchKeyboard.qml">../qml/TouchKeyboard.qml</file>
+    <file alias="qml/TasksView.qml">../qml/TasksView.qml</file>
+    <file alias="qml/SettingsView.qml">../qml/SettingsView.qml</file>
+    <file alias="qml/EditorView.qml">../qml/EditorView.qml</file>
+    <file alias="qml/calendar.svg">../qml/calendar.svg</file>
+  </qresource>
+</RCC>

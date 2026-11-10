@@ -1,0 +1,6 @@
+{
+  "server": "https://cloud.example.com",
+  "username": "your-username",
+  "app_password": "YOUR_NEXTCLOUD_APP_PASSWORD",
+  "timezone": "UTC"
+}

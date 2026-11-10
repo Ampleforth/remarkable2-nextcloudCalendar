@@ -1,0 +1,6 @@
+# github.com/emersion/go-ical v0.0.0-20250609112844-439c63cef608
+## explicit; go 1.13
+github.com/emersion/go-ical
+# github.com/teambition/rrule-go v1.8.2
+## explicit; go 1.16
+github.com/teambition/rrule-go
