@@ -34,11 +34,11 @@ Item {
                     MouseArea {anchors.fill:parent;enabled:modelData.writable&&!app.status.busy;onClicked:app.toggleTask(modelData)}
                 }
                 Text {id:title;x:88;y:18;width:parent.width-250;text:modelData.title;font.pixelSize:28;font.bold:true;font.strikeout:!!modelData.completed;wrapMode:Text.Wrap;color:"black"}
-                Text {id:metadata;x:88;anchors.top:title.bottom;anchors.topMargin:6;width:parent.width-120;text:app.taskSubtitle(modelData);font.pixelSize:20;wrapMode:Text.Wrap;color:"#444444"}
+                Text {id:metadata;x:88;anchors.top:title.bottom;anchors.topMargin:6;width:parent.width-120;text:app.taskSubtitle(modelData);font.weight:Font.DemiBold;font.pixelSize:20;wrapMode:Text.Wrap;color:"black"}
                 Rectangle {visible:modelData.priority>0;anchors.right:parent.right;anchors.rightMargin:20;y:20;width:110;height:38;radius:10;color:"#dddddd";Text{anchors.centerIn:parent;text:app.priorityLabel(modelData.priority);font.pixelSize:20;font.bold:true;color:"black"}}
                 MouseArea {x:78;width:parent.width-78;height:parent.height;onClicked:app.openItem(modelData)}
             }
         }
-        Text {visible:parent.count===0;anchors.centerIn:parent;text:"No tasks in this view";font.pixelSize:27;color:"#555555"}
+        Text {visible:parent.count===0;anchors.centerIn:parent;text:"No tasks in this view";font.weight:Font.DemiBold;font.pixelSize:27;color:"black"}
     }
 }

@@ -21,13 +21,13 @@ Rectangle {
             Field {width:parent.width;label:"Username";value:app.connectionDraft.username;editable:!app.status.busy&&!app.connectionSaving;onActivated:app.field="connection.username"}
             Field {objectName:"passwordField";width:parent.width;label:"App password";value:app.connectionDraft.app_password?"••••••••":(app.connectionDraft.has_password?"Saved · leave blank to keep it":"Tap to enter app password");editable:!app.status.busy&&!app.connectionSaving;onActivated:app.field="connection.app_password"}
             Action {width:230;label:app.connectionSaving?"Saving…":"Save & sync";enabled:!app.status.busy&&!app.connectionSaving;onTriggered:app.saveConnection()}
-            Text {width:parent.width;text:app.message||app.status.message;font.pixelSize:21;wrapMode:Text.Wrap;color:"#444444"}
+            Text {width:parent.width;text:app.message||app.status.message;font.weight:Font.DemiBold;font.pixelSize:21;wrapMode:Text.Wrap;color:"black"}
             Text {text:"Time format";font.pixelSize:28;font.bold:true;color:"black"}
             Row {spacing:12
                 Action {width:170;label:"12-hour";selected:app.timeFormat==="12h";onTriggered:app.savePreference("time_format","12h")}
                 Action {width:170;label:"24-hour";selected:app.timeFormat==="24h";onTriggered:app.savePreference("time_format","24h")}
             }
-            Text {width:parent.width;text:app.status.last_sync?"Last sync: "+app.status.last_sync:"Not synced yet";font.pixelSize:20;color:"#555555"}
+            Text {width:parent.width;text:app.status.last_sync?"Last sync: "+app.status.last_sync:"Not synced yet";font.weight:Font.DemiBold;font.pixelSize:20;color:"black"}
             Text {text:"Visible calendars & task lists";font.pixelSize:28;font.bold:true;color:"black"}
             Repeater {model:app.status.collections;delegate:Action {
                 required property var modelData
@@ -39,7 +39,7 @@ Rectangle {
                 required property var modelData
                 property bool discardConfirm:false
                 width:form.width;spacing:10
-                Text {width:parent.width;text:(modelData.title||"Item")+" · "+(modelData.delete?"Deletion":"Edit")+"\n"+(modelData.error||"Waiting to sync");font.pixelSize:22;wrapMode:Text.Wrap;color:"black"}
+                Text {width:parent.width;text:(modelData.title||"Item")+" · "+(modelData.delete?"Deletion":"Edit")+"\n"+(modelData.error||"Waiting to sync");font.weight:Font.DemiBold;font.pixelSize:22;wrapMode:Text.Wrap;color:"black"}
                 Row {spacing:12
                     Action {label:"Retry";enabled:!app.status.busy&&modelData.error.indexOf("conflict:")!==0;onTriggered:app.request("POST","/pending",{id:modelData.id,action:"retry"},function(){app.sync()})}
                     Action {width:260;label:parent.parent.discardConfirm?"Confirm discard":"Discard local change";enabled:!app.status.busy;onTriggered:{if(parent.parent.discardConfirm)app.request("POST","/pending",{id:modelData.id,action:"discard"},function(){app.refresh()});else parent.parent.discardConfirm=true}}

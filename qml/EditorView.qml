@@ -17,8 +17,8 @@ Rectangle {
             Action {label:"Save";selected:true;enabled:page.draft&&page.draft.writable&&!app.status.busy&&!app.saving;onTriggered:app.save(false)}
             Action {label:app.confirmingDelete?"Confirm":"Delete";enabled:page.draft&&page.draft.id!==""&&page.draft.writable&&!app.status.busy&&!app.saving;onTriggered:{if(app.confirmingDelete)app.save(true);else app.confirmingDelete=true}}
         }
-        Text {width:parent.width;text:app.message||(page.draft&&!page.draft.writable?"Read-only · edit recurring items and invitations in Nextcloud":"Saved on the tablet until you tap Sync.");font.pixelSize:20;wrapMode:Text.Wrap;color:"#444444"}
-        Text {text:"Swipe left from the right edge to go back";font.pixelSize:18;color:"#555555"}
+        Text {width:parent.width;text:app.message||(page.draft&&!page.draft.writable?"Read-only · edit recurring items and invitations in Nextcloud":"Saved on the tablet until you tap Sync.");font.weight:Font.DemiBold;font.pixelSize:20;wrapMode:Text.Wrap;color:"black"}
+        Text {text:"Swipe left from the right edge to go back";font.weight:Font.DemiBold;font.pixelSize:18;color:"black"}
     }
     Flickable {
         anchors.top:heading.bottom;anchors.topMargin:20;anchors.left:parent.left;anchors.right:parent.right;anchors.bottom:parent.bottom;anchors.bottomMargin:app.keyboardHeight;clip:true;contentHeight:form.height+48

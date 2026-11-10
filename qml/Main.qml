@@ -235,8 +235,8 @@ Rectangle {
                 ToolbarButton {icon:"next";onTriggered:root.navigate(1)}
             }
         }
-        Text {width:parent.width;text:root.message||(root.loading?"Loading…":root.status.message);font.pixelSize:18;color:"#555555";wrapMode:Text.Wrap}
-        Text {visible:root.view!=="tasks";text:root.view==="month"?"Swipe to change month · Tap a date to open":"Swipe to browse · Hold an empty time to add an event";font.pixelSize:18;color:"#555555"}
+        Text {width:parent.width;text:root.message||(root.loading?"Loading…":root.status.message);font.weight:Font.DemiBold;font.pixelSize:18;color:"black";wrapMode:Text.Wrap}
+        Text {visible:root.view!=="tasks";text:root.view==="month"?"Swipe to change month · Tap a date to open":"Swipe to browse · Hold an empty time to add an event";font.weight:Font.DemiBold;font.pixelSize:18;color:"black"}
     }
     Rectangle {
         id:content;anchors.top:header.bottom;anchors.topMargin:18;anchors.bottom:parent.bottom;anchors.bottomMargin:24;anchors.left:parent.left;anchors.right:parent.right;anchors.leftMargin:24;anchors.rightMargin:24
@@ -251,9 +251,9 @@ Rectangle {
                 color:day.getMonth()===root.selected.getMonth()?"white":"#eeeeee"
                 Text {x:12;y:12;text:monthCell.day.getDate();font.pixelSize:28;font.bold:root.iso(monthCell.day)===root.iso(new Date());color:"black"}
                 Column {x:8;y:52;width:parent.width-16;spacing:8
-                    Repeater {model:root.eventsOn(monthCell.day).slice(0,Math.max(0,Math.floor((monthCell.height-84)/42)));delegate:Text {required property var modelData;width:parent.width;text:modelData.title;font.pixelSize:18;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"black"}}
+                    Repeater {model:root.eventsOn(monthCell.day).slice(0,Math.max(0,Math.floor((monthCell.height-84)/42)));delegate:Text {required property var modelData;width:parent.width;text:modelData.title;font.weight:Font.DemiBold;font.pixelSize:18;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"black"}}
                 }
-                Text {anchors.bottom:parent.bottom;anchors.right:parent.right;anchors.margins:8;text:root.eventsOn(monthCell.day).length?root.eventsOn(monthCell.day).length+" events":"";font.pixelSize:14;color:"#555555"}
+                Text {anchors.bottom:parent.bottom;anchors.right:parent.right;anchors.margins:8;text:root.eventsOn(monthCell.day).length?root.eventsOn(monthCell.day).length+" events":"";font.weight:Font.DemiBold;font.pixelSize:14;color:"black"}
             }}
         }
         CalendarGesture {

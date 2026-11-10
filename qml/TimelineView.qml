@@ -77,7 +77,7 @@ Item {
             }
         }
     }
-    Text {x:8;y:headings.height+10;text:"All day";font.pixelSize:18;color:"#444444"}
+    Text {x:8;y:headings.height+10;text:"All day";font.weight:Font.DemiBold;font.pixelSize:18;color:"black"}
     Row {
         id: allDayRow
         x: timeline.gutter; y: headings.height
@@ -99,7 +99,7 @@ Item {
                             required property var modelData
                             x: 3; width: allDayColumn.width - 6; height: 46
                             radius:10;color: "#dddddd"; border.color: "#bbbbbb"
-                            Text {anchors.fill:parent;anchors.margins:5;text:modelData.title;font.pixelSize:20;color:"black";elide:Text.ElideRight;verticalAlignment:Text.AlignVCenter}
+                            Text {anchors.fill:parent;anchors.margins:5;text:modelData.title;font.weight:Font.DemiBold;font.pixelSize:20;color:"black";elide:Text.ElideRight;verticalAlignment:Text.AlignVCenter}
                         }
                     }
                 }
@@ -132,7 +132,7 @@ Item {
                 required property int index
                 width: hours.width; height: index === timeline.endHour-timeline.startHour ? 28 : timeline.hourHeight
                 y: index * timeline.hourHeight
-                Text {x:8;y:2;width:timeline.gutter-12;text:Geometry.clock((timeline.startHour+index)*60,app.timeFormat);font.pixelSize:app.timeFormat==="12h"?16:19;color:"#333333"}
+                Text {x:8;y:2;width:timeline.gutter-12;text:Geometry.clock((timeline.startHour+index)*60,app.timeFormat);font.weight:Font.DemiBold;font.pixelSize:app.timeFormat==="12h"?16:19;color:"black"}
                 Rectangle {x:timeline.gutter;width:parent.width-x;height:1;color:"#999999"}
                 Rectangle {visible:index<timeline.endHour-timeline.startHour;x:timeline.gutter;y:timeline.hourHeight/2;width:parent.width-x;height:1;color:"#dddddd"}
             }

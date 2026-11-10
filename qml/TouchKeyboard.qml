@@ -19,13 +19,13 @@ Rectangle {
     Column {
         id:rows;x:12;y:18;width:parent.width-24;spacing:9
         Item {width:parent.width;height:69
-            Text {anchors.verticalCenter:parent.verticalCenter;width:parent.width-340;text:keyboard.label;font.pixelSize:19;color:"black";elide:Text.ElideRight}
+            Text {anchors.verticalCenter:parent.verticalCenter;width:parent.width-340;text:keyboard.label;font.weight:Font.DemiBold;font.pixelSize:19;color:"black";elide:Text.ElideRight}
             Row {anchors.right:parent.right;spacing:8
                 Action {objectName:"hideKeyboardButton";width:110;height:66;label:"Hide";onTriggered:keyboard.done()}
             }
         }
         Rectangle {width:parent.width;height:93;radius:8;color:"white";border.color:"black";border.width:2
-            TextInput {id:input;objectName:"keyboardInput";x:12;y:15;width:parent.width-24;height:63;font.pixelSize:28;clip:true;selectByMouse:true;activeFocusOnPress:false;text:keyboard.value;echoMode:keyboard.secret?TextInput.Password:TextInput.Normal;onTextEdited:keyboard.edited(text);onActiveFocusChanged:if(activeFocus&&Qt.inputMethod)Qt.inputMethod.hide()}
+            TextInput {id:input;objectName:"keyboardInput";x:12;y:15;width:parent.width-24;height:63;color:"black";font.weight:Font.DemiBold;font.pixelSize:28;clip:true;selectByMouse:true;activeFocusOnPress:false;text:keyboard.value;echoMode:keyboard.secret?TextInput.Password:TextInput.Normal;onTextEdited:keyboard.edited(text);onActiveFocusChanged:if(activeFocus&&Qt.inputMethod)Qt.inputMethod.hide()}
         }
         Repeater {
             model:keyboard.symbols?(keyboard.extraSymbols?["[]{}#%^*+=","_\\|~<>€£¥",".,?!'\":"]:["1234567890","@#$%&-+()","*\"':;!?"]):["qwertyuiop","asdfghjkl","zxcvbnm"]

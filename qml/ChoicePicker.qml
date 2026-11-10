@@ -47,7 +47,7 @@ Item {
                 required property var modelData
                 width:ListView.view.width;height:64;radius:10
                 color:modelData.value===picker.selectedValue?"#e5e5e5":"white"
-                Text {x:16;anchors.verticalCenter:parent.verticalCenter;width:parent.width-32;text:modelData.label;font.pixelSize:26;font.bold:modelData.value===picker.selectedValue;color:"black";elide:Text.ElideRight}
+                Text {x:16;anchors.verticalCenter:parent.verticalCenter;width:parent.width-32;text:modelData.label;font.pixelSize:26;font.weight:modelData.value===picker.selectedValue?Font.Bold:Font.DemiBold;color:"black";elide:Text.ElideRight}
                 MouseArea {anchors.fill:parent;onClicked:picker.choose(index)}
             }
         }
