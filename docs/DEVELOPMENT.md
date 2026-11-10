@@ -75,7 +75,7 @@ a binary under the GPL.
 
 ## Limitations
 
-- Portrait grayscale UI; no event drag/resize or handwriting entry.
+- Portrait grayscale UI; no event drag/resize.
 - Manual sync; no always-on scheduled polling of Nextcloud.
 - Recurring resources and invitations are read-only. RDATE-only recurrence,
   THISANDFUTURE exceptions, embedded custom timezone definitions and unusual

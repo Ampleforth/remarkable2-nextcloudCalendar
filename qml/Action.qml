@@ -6,13 +6,19 @@ Rectangle {
     id: button
     property string label
     property bool selected: false
+    property bool dropdown: false
+    property bool checkable: false
+    property bool checked: false
+    property real fontSize: 22
     readonly property bool pressed: tap.pressed
     signal triggered
     width: 110; height: 58
     radius: 13
     color: selected ? "black" : "#e9e9e9"
-    border.color: selected ? "black" : "#d5d5d5"; border.width: 1
+    border.color: "black"; border.width: 2
     opacity: enabled ? 1 : 0.4
-    Text { anchors.centerIn: parent; width:parent.width-18; horizontalAlignment:Text.AlignHCenter; elide:Text.ElideRight; text: button.label; color: button.selected ? "white" : "black"; font.pixelSize: 22; font.bold:button.selected }
+    CheckMark {visible:button.checkable;x:14;anchors.verticalCenter:parent.verticalCenter;checked:button.checked}
+    Text { x:button.checkable?56:9; anchors.verticalCenter:parent.verticalCenter; width:parent.width-x-(button.dropdown?44:9); horizontalAlignment:button.checkable?Text.AlignLeft:Text.AlignHCenter; elide:Text.ElideRight; text:button.label;color:button.selected?"white":"black";font.pixelSize:button.fontSize;font.bold:button.selected }
+    Canvas {visible:button.dropdown;anchors.right:parent.right;anchors.rightMargin:14;anchors.verticalCenter:parent.verticalCenter;width:18;height:12;onPaint:{var c=getContext("2d");c.reset();c.strokeStyle=button.selected?"white":"black";c.lineWidth=2;c.beginPath();c.moveTo(1,2);c.lineTo(9,10);c.lineTo(17,2);c.stroke()}}
     MouseArea { id:tap; anchors.fill: parent; onClicked: button.triggered() }
 }

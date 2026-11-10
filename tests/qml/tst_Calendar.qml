@@ -297,12 +297,16 @@ TestCase {
         app.closeSettings()
         compare(app.connectionDraft.app_password,"")
     }
-    function test_stock_style_keyboard_letters_and_numbers() {
+    function test_original_keyboard_letters_and_numbers() {
         app.newItem();wait(30)
         var keyboard=findChild(app,"touchKeyboard")
+        compare(keyboard.height,663)
+        compare(findChild(keyboard,"key_q").height,108)
+        compare(findChild(keyboard,"key_q").width,findChild(keyboard,"key_a").width)
+        compare(findChild(keyboard,"key_q").width,findChild(keyboard,"key_z").width)
         mouseClick(findChild(keyboard,"key_q"),20,20)
         compare(app.draft.title,"q")
-        mouseClick(findChild(keyboard,"key_123"),20,20);wait(10)
+        mouseClick(findChild(keyboard,"symbolModeButton"),20,20);wait(10)
         mouseClick(findChild(keyboard,"key_1"),20,20)
         compare(app.draft.title,"q1")
         keyboard.symbols=false
@@ -327,5 +331,13 @@ TestCase {
         app.field="date.start";compare(app.editValue(),"2026-0")
         app.editText("2026-02-30");app.save(false);compare(submitted,null)
         app.cancelEdit()
+    }
+    function test_outside_tap_keeps_keyboard_open() {
+        app.newItem();app.editText("Keep this title");wait(20)
+        mouseClick(app,300,100)
+        compare(app.field,"title")
+        verify(findChild(app,"touchKeyboard").visible)
+        compare(app.draft.title,"Keep this title")
+        compare(submitted,null)
     }
 }

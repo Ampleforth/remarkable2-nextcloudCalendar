@@ -14,5 +14,6 @@
     <file alias="qml/SettingsView.qml">../qml/SettingsView.qml</file>
     <file alias="qml/EditorView.qml">../qml/EditorView.qml</file>
     <file alias="qml/calendar.svg">../qml/calendar.svg</file>
+    <file alias="qml/CheckMark.qml">../qml/CheckMark.qml</file>
   </qresource>
 </RCC>

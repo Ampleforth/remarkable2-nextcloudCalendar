@@ -29,7 +29,7 @@ Rectangle {
                 width:form.width;label:modelData.charAt(0).toUpperCase()+modelData.slice(1);value:page.draft?page.draft[modelData]:"";editable:page.draft&&page.draft.writable;onActivated:app.field=modelData
             }}
             Field {id:calendar;objectName:"calendarDropdown";width:form.width;label:"Calendar / task list";value:page.draft?page.draft.calendar_name:"";dropdown:page.draft&&page.draft.id==="";editable:page.draft&&page.draft.id==="";onActivated:app.chooseCalendar(calendar)}
-            Action {visible:page.draft&&page.draft.kind==="VEVENT";width:220;label:page.draft&&page.draft.all_day?"✓ All day":"All day";enabled:page.draft&&page.draft.writable;onTriggered:{var all=!page.draft.all_day;app.setField("all_day",all);app.setField("start",all?page.draft.start.slice(0,10):page.draft.start.slice(0,10)+"T09:00");app.setField("end",all?app.iso(app.add(app.date(page.draft.start),1)):page.draft.start.slice(0,10)+"T10:00")}}
+            Action {visible:page.draft&&page.draft.kind==="VEVENT";width:220;checkable:true;checked:page.draft&&page.draft.all_day;label:"All day";enabled:page.draft&&page.draft.writable;onTriggered:{var all=!page.draft.all_day;app.setField("all_day",all);app.setField("start",all?page.draft.start.slice(0,10):page.draft.start.slice(0,10)+"T09:00");app.setField("end",all?app.iso(app.add(app.date(page.draft.start),1)):page.draft.start.slice(0,10)+"T10:00")}}
             Repeater {model:page.draft&&page.draft.kind==="VEVENT"?["start","end"]:[];delegate:Row {
                 required property string modelData
                 width:form.width;spacing:16
@@ -41,7 +41,7 @@ Rectangle {
                 width:form.width;label:(modelData==="scheduled"?"Scheduled for":"Due by")+" · YYYY-MM-DD or YYYY-MM-DDTHH:MM (24h)";value:page.draft?page.draft[modelData]||"":"";editable:page.draft&&page.draft.writable;onActivated:app.field=modelData
             }}
             Field {id:priority;visible:page.draft&&page.draft.kind==="VTODO";width:form.width;label:"Priority";value:page.draft?app.priorityLabel(page.draft.priority):"None";dropdown:true;editable:page.draft&&page.draft.writable;onActivated:app.choosePriority(priority)}
-            Action {visible:page.draft&&page.draft.kind==="VTODO";width:220;label:page.draft&&page.draft.completed?"✓ Completed":"Mark completed";enabled:page.draft&&page.draft.writable;onTriggered:app.setField("completed",!page.draft.completed)}
+            Action {visible:page.draft&&page.draft.kind==="VTODO";width:240;checkable:true;checked:!!(page.draft&&page.draft.completed);label:"Completed";enabled:page.draft&&page.draft.writable;onTriggered:app.setField("completed",!page.draft.completed)}
         }
     }
 }

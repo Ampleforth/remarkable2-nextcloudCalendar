@@ -31,7 +31,7 @@ Rectangle {
             Text {text:"Visible calendars & task lists";font.pixelSize:28;font.bold:true;color:"black"}
             Repeater {model:app.status.collections;delegate:Action {
                 required property var modelData
-                width:form.width;label:(modelData.enabled?"✓  ":"○  ")+modelData.name+(modelData.writable?"":" · read-only");enabled:!app.status.busy
+                width:form.width;checkable:true;checked:modelData.enabled;label:modelData.name+(modelData.writable?"":" · read-only");enabled:!app.status.busy
                 onTriggered:app.request("POST","/collections",{id:modelData.id,enabled:!modelData.enabled},function(){app.refresh()})
             }}
             Text {text:"Pending changes: "+app.status.pending.length;font.pixelSize:28;font.bold:true;color:"black"}

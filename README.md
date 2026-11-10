@@ -26,11 +26,11 @@ backend and a grayscale Qt Quick interface.
 - In-app server URL, username, and masked app-password entry. Each installation
   uses its own credentials and cache; no server or account is preconfigured.
 - Rounded monochrome controls, a calendar/Nextcloud launcher icon, and a custom
-  keyboard styled after the tablet's stock QWERTY keyboard.
+  US mobile QWERTY keyboard with equal-sized letter keys.
 
 Recurring events are viewable, including ordinary detached exceptions, but
-recurring items and meeting invitations are read-only. There is no handwriting
-entry, guest management, automatic background sync, or event drag-to-reschedule.
+recurring items and meeting invitations are read-only. There is no guest
+management, automatic background sync, or event drag-to-reschedule.
 See [limitations](docs/DEVELOPMENT.md#limitations).
 
 ## Requirements
@@ -79,7 +79,7 @@ then close and reopen the app. The 12/24-hour display toggle is available in Set
 
 - Swipe left/right to change the day, week, or month.
 - Swipe vertically to scroll the hourly schedule.
-- Use the keyboard icon with a down arrow to hide the keyboard. Partial date input
+- Tap Hide or Done to dismiss the keyboard. Partial date input
   is retained while editing; invalid dates must be corrected before saving.
 - Tap an event, day heading, or month date to open it.
 - Press and hold an empty time slot to create an event there; tap Save to keep it.

@@ -20,6 +20,16 @@ Rectangle {
     property bool connectionSaving: false
     property var draft: null
     property string field: ""
+    function hideNativeKeyboard() {
+        if(Qt.inputMethod)Qt.inputMethod.hide()
+        var ancestor=root.parent
+        for(var i=0;ancestor&&i<20;i++,ancestor=ancestor.parent) {
+            if(typeof ancestor.virtualKeyboardRef!=="undefined"&&ancestor.virtualKeyboardRef)
+                ancestor.virtualKeyboardRef.active=false
+        }
+        root.forceActiveFocus()
+    }
+    onFieldChanged:if(field!=="")hideNativeKeyboard()
     property var dateFields: ({})
     property bool showCompleted: false
     property string taskList: ""

@@ -9,9 +9,9 @@ Item {
     Item {
         id:toolbar;x:20;y:18;width:parent.width-40;height:116
         Text {text:"All tasks";font.pixelSize:34;font.bold:true;color:"black"}
-        Action {id:sort;objectName:"taskSortButton";anchors.right:parent.right;width:310;label:"Sort: "+app.sortOptions.filter(function(o){return o.value===app.taskSort})[0].label+" ▾";onTriggered:app.chooseSort(sort)}
+        Action {id:sort;dropdown:true;objectName:"taskSortButton";anchors.right:parent.right;width:310;label:"Sort: "+app.sortOptions.filter(function(o){return o.value===app.taskSort})[0].label;onTriggered:app.chooseSort(sort)}
         Row {y:64;spacing:12
-            Action {id:lists;width:300;label:app.taskListName()+" ▾";onTriggered:app.chooseTaskList(lists)}
+            Action {id:lists;dropdown:true;width:300;label:app.taskListName();onTriggered:app.chooseTaskList(lists)}
             Action {width:220;label:app.showCompleted?"Hide completed":"Show completed";onTriggered:app.showCompleted=!app.showCompleted}
         }
     }
@@ -29,9 +29,8 @@ Item {
             }
             Rectangle {
                 width:parent.width;height:Math.max(112,title.implicitHeight+metadata.implicitHeight+32);radius:16;color:"white";border.color:"#cccccc"
-                Rectangle {
-                    x:22;y:30;width:40;height:40;radius:6;border.color:"black";border.width:2;color:modelData.completed?"black":"white"
-                    Text {anchors.centerIn:parent;text:modelData.completed?"✓":"";color:"white";font.pixelSize:29}
+                CheckMark {
+                    x:22;y:30;width:40;height:40;checked:!!modelData.completed
                     MouseArea {anchors.fill:parent;enabled:modelData.writable&&!app.status.busy;onClicked:app.toggleTask(modelData)}
                 }
                 Text {id:title;x:88;y:18;width:parent.width-250;text:modelData.title;font.pixelSize:28;font.bold:true;font.strikeout:!!modelData.completed;wrapMode:Text.Wrap;color:"black"}
