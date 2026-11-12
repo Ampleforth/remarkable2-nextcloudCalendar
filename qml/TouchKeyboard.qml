@@ -28,7 +28,7 @@ Rectangle {
             TextInput {id:input;objectName:"keyboardInput";x:12;y:15;width:parent.width-24;height:63;color:"black";font.weight:Font.DemiBold;font.pixelSize:28;clip:true;selectByMouse:true;activeFocusOnPress:false;text:keyboard.value;echoMode:keyboard.secret?TextInput.Password:TextInput.Normal;onTextEdited:keyboard.edited(text);onActiveFocusChanged:if(activeFocus&&Qt.inputMethod)Qt.inputMethod.hide()}
         }
         Repeater {
-            model:keyboard.symbols?(keyboard.extraSymbols?["[]{}#%^*+=","_\\|~<>€£¥",".,?!'\":"]:["1234567890","@#$%&-+()","*\"':;!?"]):["qwertyuiop","asdfghjkl","zxcvbnm"]
+            model:keyboard.symbols?(keyboard.extraSymbols?["[]{}#%^*+=","_\\|~<>€£¥",".,?!'\":"]:["1234567890","@#$%&-+()","/\"':;!?"]):["qwertyuiop","asdfghjkl","zxcvbnm"]
             delegate:Item {
                 required property string modelData
                 required property int index

@@ -309,6 +309,9 @@ TestCase {
         mouseClick(findChild(keyboard,"symbolModeButton"),20,20);wait(10)
         mouseClick(findChild(keyboard,"key_1"),20,20)
         compare(app.draft.title,"q1")
+        mouseClick(findChild(keyboard,"key_/"),20,20)
+        compare(app.draft.title,"q1/")
+        verify(findChild(keyboard,"key_*")===null)
         keyboard.symbols=false
     }
 
