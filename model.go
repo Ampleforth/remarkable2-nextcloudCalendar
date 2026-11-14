@@ -31,24 +31,27 @@ type Change struct {
 	Error  string `json:"error,omitempty"`
 }
 type State struct {
-	Account     string              `json:"account,omitempty"`
-	TimeFormat  string              `json:"time_format,omitempty"`
-	TaskSort    string              `json:"task_sort,omitempty"`
-	Collections []Collection        `json:"collections"`
-	Resources   map[string]Resource `json:"resources"`
-	Pending     map[string]Change   `json:"pending"`
-	LastSync    string              `json:"last_sync"`
+	CalendarColors map[string]string   `json:"calendar_colors,omitempty"`
+	Captures       map[string]bool     `json:"captures,omitempty"`
+	Account        string              `json:"account,omitempty"`
+	TimeFormat     string              `json:"time_format,omitempty"`
+	TaskSort       string              `json:"task_sort,omitempty"`
+	Collections    []Collection        `json:"collections"`
+	Resources      map[string]Resource `json:"resources"`
+	Pending        map[string]Change   `json:"pending"`
+	LastSync       string              `json:"last_sync"`
 }
 type Store struct {
-	mu      sync.Mutex
-	path    string
-	state   State
-	busy    bool
-	message string
+	colorDisplay bool
+	mu           sync.Mutex
+	path         string
+	state        State
+	busy         bool
+	message      string
 }
 
 func openStore(path string) (*Store, error) {
-	s := &Store{path: path, state: State{Resources: map[string]Resource{}, Pending: map[string]Change{}, Collections: []Collection{}}}
+	s := &Store{colorDisplay: nativeColorDisplay(), path: path, state: State{Resources: map[string]Resource{}, Pending: map[string]Change{}, Collections: []Collection{}}}
 	b, err := os.ReadFile(path)
 	if err == nil {
 		err = json.Unmarshal(b, &s.state)
@@ -126,6 +129,6 @@ func (s *Store) status() map[string]any {
 	if sort == "" {
 		sort = "scheduled"
 	}
-	return map[string]any{"busy": s.busy, "message": s.message, "last_sync": s.state.LastSync, "pending": pending, "collections": s.state.Collections, "time_format": format, "task_sort": sort}
+	return map[string]any{"color_display": s.colorDisplay, "calendar_colors": s.state.CalendarColors, "busy": s.busy, "message": s.message, "last_sync": s.state.LastSync, "pending": pending, "collections": s.state.Collections, "time_format": format, "task_sort": sort}
 }
 func nowStamp() string { return time.Now().UTC().Format(time.RFC3339) }

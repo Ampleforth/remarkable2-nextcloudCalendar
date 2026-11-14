@@ -14,10 +14,13 @@ Rectangle {
     property date selected: new Date()
     property var items: []
     property var status: ({busy:false,collections:[],pending:[],message:"Tap Sync to connect to Nextcloud"})
+    onStatusChanged:{Theme.colorDisplay=status.color_display===true;Theme.calendarColors=status.calendar_colors||{}}
     property string message: ""
     property bool settingsOpen: false
     property var connectionDraft: ({server:"https://cloud.example.com",username:"",app_password:"",has_password:false})
     property bool connectionSaving: false
+    property bool launcherEnabled: true
+    property bool launcherSaving: false
     property var draft: null
     property string field: ""
     function hideNativeKeyboard() {
@@ -31,6 +34,9 @@ Rectangle {
     }
     onFieldChanged:if(field!=="")hideNativeKeyboard()
     property var dateFields: ({})
+    property int captureIndex: 0
+    property int captureTotal: 0
+    property int pendingCaptureCount: 0
     property bool showCompleted: false
     property string taskList: ""
     property bool confirmingDelete: false
@@ -66,7 +72,7 @@ Rectangle {
             if(xhr.readyState!==XMLHttpRequest.DONE)return
             requests=requests.filter(function(x){return x!==xhr})
             try {var value=JSON.parse(xhr.responseText);if(xhr.status!==200||value.error)throw value.error||"Backend unavailable";done(value)}
-            catch(e){message=String(e);saving=false;connectionSaving=false;loading=false}
+            catch(e){message=String(e);saving=false;connectionSaving=false;launcherSaving=false;loading=false}
         }
         xhr.open(method,"http://127.0.0.1:38766"+path)
         if(method!=="GET"){xhr.setRequestHeader("Content-Type","application/json");xhr.setRequestHeader("X-RemarkableCalendar-Request","sync")}
@@ -77,11 +83,24 @@ Rectangle {
         request("GET","/items?start="+iso(start)+"&end="+iso(end),null,function(v){if(serial===generation){items=v.items;loading=false}})
         request("GET","/status",null,function(v){status=v})
     }
+    function refreshCaptureCount() {
+        request("GET","/captures",null,function(v){pendingCaptureCount=v.captures.length})
+    }
+    function openCapture(continuing) {
+        request("GET","/captures",null,function(v){
+            pendingCaptureCount=v.captures.length
+            if(!v.captures.length){captureIndex=0;captureTotal=0;message=continuing?"All lasso tasks reviewed · tap Sync to upload saved tasks":"No captured tasks waiting";return}
+            captureIndex=continuing?captureIndex+1:1
+            captureTotal=continuing?Math.max(captureTotal,captureIndex+v.captures.length-1):v.captures.length
+            view="tasks";newItem();if(!draft)return
+            var c=v.captures[0];setField("title",c.summary);setField("description",c.description);setField("capture_id",c.id);field=""
+        })
+    }
     function sync() {request("POST","/sync",{},function(){message="";refresh()})}
     function navigate(n) {selected=view==="month"?new Date(selected.getFullYear(),selected.getMonth()+n,1,12):add(selected,n*(view==="week"?7:1));refresh()}
     function changeView(v) {view=v;refresh()}
     function openDay(day) {selected=day;changeView("day")}
-    function cancelEdit() {draft=null;field="";dateFields={};confirmingDelete=false;picker.close()}
+    function cancelEdit(continuing) {if(!continuing){captureIndex=0;captureTotal=0};draft=null;field="";dateFields={};confirmingDelete=false;picker.close()}
     function eventsOn(d) {
         var key=iso(d),next=iso(add(d,1))+"T00:00"
         return items.filter(function(i){return i.kind==="VEVENT"&&i.start<next&&(i.end>key+"T00:00"||i.start.slice(0,10)===key)})
@@ -116,6 +135,12 @@ Rectangle {
     function taskSubtitle(item) {
         var scheduled=taskDate(item,"scheduled")
         return (scheduled?displayDate(scheduled):"Unscheduled")+" · "+item.calendar_name+(item.due?" · Due "+displayDate(item.due):"")+(item.pending?" · pending":"")
+    }
+    function chooseCalendarColor(anchor,id) {
+        field=""
+        picker.show(anchor,"Calendar / task list color",Theme.choices,Theme.calendarColor(id),function(value){
+            request("POST","/colors",{id:id,color:value},function(v){status=v})
+        })
     }
     function savePreference(name,value) {var p={};p[name]=value;request("POST","/preferences",p,function(v){status=v})}
     function chooseSort(anchor) {field="";picker.show(anchor,"Sort tasks",sortOptions,taskSort,function(value){savePreference("task_sort",value)})}
@@ -187,11 +212,23 @@ Rectangle {
         if(saving)return
         if(!remove&&draft.kind==="VEVENT"&&(!validDate(dateValue("start"))||!validDate(dateValue("end")))){message="Enter valid start and end dates as YYYY-MM-DD";return}
         saving=true;var payload=JSON.parse(JSON.stringify(draft));payload.delete=remove
-        request("POST","/items",payload,function(){saving=false;cancelEdit();refresh();message="Saved on tablet · tap Sync to upload"})
+        request("POST","/items",payload,function(){saving=false;cancelEdit(!!payload.capture_id);refresh();message="Saved on tablet · tap Sync to upload";if(payload.capture_id&&!remove)openCapture(true)})
+    }
+    function discardCapture() {
+        if(saving||!draft||!draft.capture_id)return
+        saving=true
+        request("POST","/captures/discard",{id:draft.capture_id},function(){saving=false;cancelEdit(true);refresh();openCapture(true)})
     }
     function toggleTask(i) {if(!i.writable||status.busy)return;var e=JSON.parse(JSON.stringify(i));e.completed=!e.completed;request("POST","/items",e,function(){refresh()})}
+    function saveLauncher() {
+        if(launcherSaving)return
+        launcherSaving=true
+        var enabled=!launcherEnabled
+        request("POST","/launcher",{enabled:enabled},function(){launcherEnabled=enabled;launcherSaving=false;message="Calendar icon setting saved"})
+    }
     function openSettings() {
         settingsOpen=true;field="";message=""
+        request("GET","/launcher",null,function(v){launcherEnabled=v.enabled})
         request("GET","/connection",null,function(c){if(settingsOpen)connectionDraft={server:c.server,username:c.username,app_password:"",has_password:c.has_password}})
     }
     function closeSettings() {settingsOpen=false;field="";connectionDraft.app_password="";picker.close()}
@@ -204,13 +241,14 @@ Rectangle {
     }
     Timer {id:poll;interval:2000;running:true;repeat:true;onTriggered:root.request("GET","/status",null,function(v){var wasBusy=root.status.busy;root.status=v;if(wasBusy&&!v.busy)root.refresh()})}
     Timer {interval:8000;running:true;repeat:true;onTriggered:{if(root.loading){root.requests.forEach(function(x){x.abort()});root.requests=[];root.loading=false;root.message="Backend request timed out · tap a view to retry"}}}
-    Component.onCompleted:refresh()
+    Timer {interval:2000;running:true;repeat:true;onTriggered:root.refreshCaptureCount()}
+    Component.onCompleted:{refresh();refreshCaptureCount()}
 
     Column {
         id:header;x:32;y:24;width:parent.width-64;spacing:18
         Row {
             width:parent.width;spacing:16
-            Image {source:"calendar.svg";width:64;height:64;sourceSize.width:128;sourceSize.height:128}
+            Image {objectName:"mainLogo";source:Theme.colorDisplay?"calendar-color.svg":"calendar.svg";width:64;height:64;sourceSize.width:128;sourceSize.height:128}
             Text {width:Math.max(200,header.width-400);height:64;verticalAlignment:Text.AlignVCenter;text:"Nextcloud Calendar";font.pixelSize:34;font.bold:true;color:"black"}
             ToolbarButton {icon:"add";enabled:!root.status.busy;onTriggered:root.newItem()}
             ToolbarButton {icon:"sync";busy:root.status.busy;enabled:!root.status.busy;onTriggered:root.sync()}
@@ -224,7 +262,10 @@ Rectangle {
                     Repeater {model:["week","month","day"];delegate:Action {required property string modelData;width:110;label:modelData.charAt(0).toUpperCase()+modelData.slice(1);selected:root.view===modelData;onTriggered:root.changeView(modelData)}}
                 }
             }
-            Action {objectName:"tasksNavigation";anchors.right:parent.right;width:145;label:"Tasks";selected:root.view==="tasks";onTriggered:root.changeView("tasks")}
+            Row {anchors.right:parent.right;spacing:12
+                Action {objectName:"importLassoTask";width:290;label:root.pendingCaptureCount===1?"Import Lasso Task":"Import "+root.pendingCaptureCount+" Lasso Tasks";visible:root.pendingCaptureCount>0;enabled:!root.status.busy;onTriggered:root.openCapture()}
+                Action {objectName:"tasksNavigation";width:145;label:"Tasks";selected:root.view==="tasks";onTriggered:root.changeView("tasks")}
+            }
         }
         Item {
             visible:root.view!=="tasks";width:parent.width;height:64
@@ -251,7 +292,7 @@ Rectangle {
                 color:day.getMonth()===root.selected.getMonth()?"white":"#eeeeee"
                 Text {x:12;y:12;text:monthCell.day.getDate();font.pixelSize:28;font.bold:root.iso(monthCell.day)===root.iso(new Date());color:"black"}
                 Column {x:8;y:52;width:parent.width-16;spacing:8
-                    Repeater {model:root.eventsOn(monthCell.day).slice(0,Math.max(0,Math.floor((monthCell.height-84)/42)));delegate:Text {required property var modelData;width:parent.width;text:modelData.title;font.weight:Font.DemiBold;font.pixelSize:18;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"black"}}
+                    Repeater {model:root.eventsOn(monthCell.day).slice(0,Math.max(0,Math.floor((monthCell.height-84)/42)));delegate:Text {required property var modelData;width:parent.width;text:modelData.title;font.weight:Font.DemiBold;font.pixelSize:18;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:Theme.calendarEdge(modelData.calendar,"black")}}
                 }
                 Text {anchors.bottom:parent.bottom;anchors.right:parent.right;anchors.margins:8;text:root.eventsOn(monthCell.day).length?root.eventsOn(monthCell.day).length+" events":"";font.weight:Font.DemiBold;font.pixelSize:14;color:"black"}
             }}

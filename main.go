@@ -33,6 +33,48 @@ func api(s *Store, configPath string, loc *time.Location) http.Handler {
 		d.DisallowUnknownFields()
 		return d.Decode(v)
 	}
+	mux.HandleFunc("POST /colors", func(w http.ResponseWriter, r *http.Request) {
+		var v struct {
+			ID    string `json:"id"`
+			Color string `json:"color"`
+		}
+		err := decodeBody(w, r, &v)
+		if err == nil {
+			err = s.setCalendarColor(v.ID, v.Color)
+		}
+		respond(w, s.status(), err)
+	})
+	mux.HandleFunc("GET /launcher", func(w http.ResponseWriter, r *http.Request) {
+		v, err := s.launcherSettings()
+		respond(w, v, err)
+	})
+	mux.HandleFunc("POST /launcher", func(w http.ResponseWriter, r *http.Request) {
+		var v struct {
+			Enabled *bool `json:"enabled"`
+		}
+		err := decodeBody(w, r, &v)
+		if err == nil && v.Enabled == nil {
+			err = errors.New("enabled is required")
+		}
+		if err == nil {
+			err = s.saveLauncher(*v.Enabled)
+		}
+		respond(w, map[string]bool{"ok": true}, err)
+	})
+	mux.HandleFunc("GET /captures", func(w http.ResponseWriter, r *http.Request) {
+		v, err := s.captures()
+		respond(w, map[string]any{"captures": v}, err)
+	})
+	mux.HandleFunc("POST /captures/discard", func(w http.ResponseWriter, r *http.Request) {
+		var v struct {
+			ID string `json:"id"`
+		}
+		err := decodeBody(w, r, &v)
+		if err == nil {
+			err = s.discardCapture(v.ID)
+		}
+		respond(w, map[string]bool{"ok": true}, err)
+	})
 	mux.HandleFunc("GET /status", func(w http.ResponseWriter, r *http.Request) { respond(w, s.status(), nil) })
 	mux.HandleFunc("GET /connection", func(w http.ResponseWriter, r *http.Request) { respond(w, connectionInfo(configPath), nil) })
 	mux.HandleFunc("POST /connection", func(w http.ResponseWriter, r *http.Request) {

@@ -88,3 +88,33 @@ a binary under the GPL.
 - File-based timezone changes require closing/reopening the app.
 - AppLoad 0.5.3 can log an upstream null-unloading warning when a frontend closes,
   even though the backend exits normally.
+
+## 0.2.0 additions
+
+`capture.go` reads the private handwriting spool. Saving and discarding record
+consumed IDs durably before acknowledging success; Discard creates no CalDAV
+change. `launcher.go` atomically saves the standalone shortcut boolean so the
+firmware-specific launcher QMD can read it without starting the backend or reading
+credentials. The launcher QMD preserves the stock action as its disabled branch.
+
+`appearance.go` recognizes only known color model names (Ferrari/Chiappa), with
+unknown/missing identity defaulting to grayscale. Color choices are validated
+hex strings, scoped to the current account's collection IDs, and atomically saved
+in the cache. Account switches clear these colors. `qml/Theme.qml` selects the
+color accents or the original grayscale values. The native SVG monochrome logo
+is unchanged; `calendar-color.svg` is used only on color devices.
+
+Build ARMv7 with `scripts/build.sh`; use `CALENDAR_GOARCH=arm64` for the separate
+ARM64 bundle. Package with `scripts/package.sh 0.2.0 arm` or `arm64`. Root `VERSION`
+records the release. The old Vellum recipe is pinned to 0.1.8 and is not a 0.2.0
+package recipe. Release installers verify CPU architecture before replacing files.
+
+`scripts/screenshots.sh` renders nine actual QML screenshots from fictional demo
+fixtures, including color Settings, tasks, day/week timelines, and import progress.
+The AI-generated design explorations in `docs/design-options` are explicitly
+marked as proposals; they are separate from screenshots of the implemented UI.
+
+RM1 ARMv7 operation was confirmed by the user; no specific RM1 firmware/hook claim
+is inferred. RM2 was tested on-device. ARM64 binaries, QML color branches, API,
+persistence and lifecycle behavior can be checked off-device, but Paper Pro/Move
+hardware, color rendering/refresh and their firmware hooks remain unverified.

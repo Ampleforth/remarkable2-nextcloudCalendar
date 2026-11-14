@@ -1,0 +1,55 @@
+; SPDX-License-Identifier: GPL-3.0-only
+; Switch the meeting-note calendar button between its stock action and AppLoad.
+; Only the non-secret launcher preference is read. No running backend is needed.
+VERSION 3.27.3.0
+
+AFFECT [[3134726245001688449]]
+    IMPORT net.asivery.AppLoad 1.0
+    TRAVERSE ?#[[6504254477]]
+        LOCATE AFTER ALL
+        INSERT {
+            property ~&6503679477&~ nextcloudCalendarEnabled: ~&6504329801&~
+            ~&214604601930&~ {
+                ~&7713147298280334&~: 1000
+                ~&233743626668842&~: ~&6504329801&~
+                ~&7083121289162&~: ~&6504329801&~
+                ~&10321248157061752881&~: ~&6504329801&~
+                ~&495358363329399331&~: {
+                    ~&197102514&~ request =  new  XMLHttpRequest();
+                    request.onreadystatechange = function() {
+                        ~&5972376&~ (request.readyState !== 4) { ~&7083121450889&~; }
+                        try {
+                            ~&197102514&~ ~&7713561876955258&~ = ~&6502785411&~.parse(request.responseText);
+                            ~&5972376&~ (~&7083223278816&~ ~&7713561876955258&~.~&233726547792244&~ === "boolean") {
+                                ~&6504254477&~.nextcloudCalendarEnabled = ~&7713561876955258&~.~&233726547792244&~;
+                            }
+                        } catch (~&214625091795&~) { }
+                    };
+                    request.~&6504147419&~("GET", "file:///home/root/.local/share/nextcloud-calendar/launcher.json");
+                    request.~&6504279475&~();
+                }
+            }
+        }
+        REBUILD [[12473595850146141341]]
+            LOCATE BEFORE ALL
+            INSERT STREAM / ~&6504254477&~.nextcloudCalendarEnabled ? [~&"233737316206498&~] : ( /
+            LOCATE AFTER ALL
+            INSERT STREAM / ) /
+        END REBUILD
+        REBUILD [[214638027133]]
+            LOCATE BEFORE ALL
+            INSERT STREAM / ~&6504254477&~.nextcloudCalendarEnabled ? ~&6504117156&~ : ( /
+            LOCATE AFTER ALL
+            INSERT STREAM / ) /
+        END REBUILD
+        REBUILD [[5336234142035948531]]
+            LOCATE AFTER STREAM / { /
+            INSERT {
+                ~&5972376&~ (~&6504254477&~.nextcloudCalendarEnabled) {
+                    AppLoadLauncher.launchApplication("org.remarkable.nextcloudcalendar", [], {}, ~&214625660372&~);
+                    ~&7083121450889&~;
+                }
+            }
+        END REBUILD
+    END TRAVERSE
+END AFFECT

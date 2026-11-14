@@ -19,3 +19,9 @@
 
 For a security report, contact the repository maintainer privately through GitHub.
 Do not attach credentials, full cache files, or private event/task contents.
+
+Lasso captures contain recognized handwriting and notebook metadata. Treat the
+intake directory and consumed-ID ledger as private data. Discard dismisses a
+capture; it does not securely erase its spool file. `launcher.json` contains only
+the meeting-notes shortcut boolean. Calendar/list color preferences contain local
+collection identifiers and color values. Neither setting changes server data.

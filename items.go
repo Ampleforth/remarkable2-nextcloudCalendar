@@ -39,6 +39,7 @@ type Item struct {
 	Revision     string `json:"revision"`
 }
 type Edit struct {
+	CaptureID string `json:"capture_id,omitempty"`
 	Item
 	Delete   bool   `json:"delete"`
 	CreateID string `json:"create_id,omitempty"`
@@ -279,6 +280,14 @@ func (s *Store) queue(e Edit, loc *time.Location) error {
 		return errors.New("wait for sync to finish")
 	}
 	next := s.clone()
+	if e.CaptureID != "" {
+		if e.ID != "" || e.Kind != "VTODO" || e.Delete {
+			return errors.New("capture must create a task")
+		}
+		if next.Captures[e.CaptureID] {
+			return nil
+		}
+	}
 	var coll Collection
 	found := false
 	for _, c := range next.Collections {
@@ -465,6 +474,12 @@ func (s *Store) queue(e Edit, loc *time.Location) error {
 		return err
 	}
 	next.Pending[r.URL] = Change{Resource: r}
+	if e.CaptureID != "" {
+		if next.Captures == nil {
+			next.Captures = map[string]bool{}
+		}
+		next.Captures[e.CaptureID] = true
+	}
 	return s.commit(next)
 }
 func sameCalendar(a, b string) bool {

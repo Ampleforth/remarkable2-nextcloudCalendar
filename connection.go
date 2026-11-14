@@ -24,6 +24,7 @@ func (s *Store) bindAccountLocked(c Config) error {
 		if len(next.Pending) > 0 {
 			return errors.New("sync or discard pending changes before changing accounts")
 		}
+		next.CalendarColors = nil
 		next.Collections = []Collection{}
 		next.Resources = map[string]Resource{}
 		next.LastSync = ""

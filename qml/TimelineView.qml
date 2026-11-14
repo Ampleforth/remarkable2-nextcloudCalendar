@@ -53,7 +53,7 @@ Item {
             delegate: Rectangle {
                 required property var modelData
                 width: timeline.dayWidth; height: headings.height
-                radius:10;color: modelData.key === app.iso(new Date()) ? "black" : "#eeeeee"
+                radius:10;color: modelData.key === app.iso(new Date()) ? (Theme.colorDisplay?"#d2eafb":"black") : "#eeeeee"
                 border.color: "#cccccc"
                 Text {
                     anchors.centerIn: parent
@@ -61,7 +61,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     font.pixelSize: timeline.dayCount === 7 ? 24 : 28
                     font.bold: true
-                    color: modelData.key === app.iso(new Date()) ? "white" : "black"
+                    color: modelData.key === app.iso(new Date()) ? (Theme.colorDisplay?"#004b78":"white") : "black"
                 }
             }
         }
@@ -98,7 +98,7 @@ Item {
                         delegate: Rectangle {
                             required property var modelData
                             x: 3; width: allDayColumn.width - 6; height: 46
-                            radius:10;color: "#dddddd"; border.color: "#bbbbbb"
+                            objectName:"allDayEventBlock";radius:10;color: Theme.calendarFill(modelData.calendar,"#dddddd"); border.color: Theme.calendarEdge(modelData.calendar,"#bbbbbb")
                             Text {anchors.fill:parent;anchors.margins:5;text:modelData.title;font.weight:Font.DemiBold;font.pixelSize:20;color:"black";elide:Text.ElideRight;verticalAlignment:Text.AlignVCenter}
                         }
                     }
@@ -155,9 +155,9 @@ Item {
                         width: Math.max(1, dayColumn.width / modelData.columns - 6)
                         y: (modelData.start-timeline.startHour*60) * timeline.hourHeight / 60
                         height: (modelData.displayEnd - modelData.start) * timeline.hourHeight / 60
-                        radius:10;color: "#e5e5e5"; border.color: "#888888"; border.width: 1
+                        objectName:"timedEventBlock";radius:10;color: Theme.calendarFill(event.calendar,"#e5e5e5"); border.color: Theme.calendarEdge(event.calendar,"#888888"); border.width: 1
                         clip: true
-                        Rectangle {width:5;height:parent.height;color:"black"}
+                        Rectangle {width:5;height:parent.height;color:Theme.calendarEdge(event.calendar,"black")}
                         Text {
                             x:10;y:4;width:Math.max(1,parent.width-16);height:parent.height-8
                             text: Geometry.clock(modelData.start,app.timeFormat)+(timeline.dayCount===7&&modelData.columns>1?"":"–"+Geometry.clock(modelData.end,app.timeFormat))+"\n"+event.title+"\n"+event.calendar_name+(event.pending?" · pending":"")

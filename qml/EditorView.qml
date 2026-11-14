@@ -6,16 +6,17 @@ Rectangle {
     id:page
     required property var app
     readonly property var draft:app.draft
+    readonly property bool importing:!!(draft&&draft.capture_id)
     color:"#f4f4f4"
     MouseArea {anchors.fill:parent}
     EdgeBack {objectName:"eventBackGesture";enabled:!app.saving;onBack:app.cancelEdit()}
     Column {
         id:heading;x:24;y:18;width:parent.width-48;spacing:14
         Row {spacing:14
-            Text {width:Math.max(200,heading.width-390);text:page.draft?(page.draft.kind==="VTODO"?"Task":"Event"):"";font.pixelSize:36;font.bold:true;color:"black"}
-            Action {label:"Cancel";onTriggered:app.cancelEdit()}
+            Text {objectName:"editorTitle";width:Math.max(200,heading.width-390);text:page.importing?"Lasso Task "+app.captureIndex+" of "+app.captureTotal:page.draft?(page.draft.kind==="VTODO"?"Task":"Event"):"";font.pixelSize:36;font.bold:true;color:"black"}
+            Action {label:"Cancel";enabled:!app.saving;onTriggered:app.cancelEdit()}
             Action {label:"Save";selected:true;enabled:page.draft&&page.draft.writable&&!app.status.busy&&!app.saving;onTriggered:app.save(false)}
-            Action {label:app.confirmingDelete?"Confirm":"Delete";enabled:page.draft&&page.draft.id!==""&&page.draft.writable&&!app.status.busy&&!app.saving;onTriggered:{if(app.confirmingDelete)app.save(true);else app.confirmingDelete=true}}
+            Action {objectName:"editorDelete";label:page.importing?"Discard":app.confirmingDelete?"Confirm":"Delete";enabled:page.draft&&(page.importing||page.draft.id!=="")&&page.draft.writable&&!app.status.busy&&!app.saving;onTriggered:{if(page.importing)app.discardCapture();else if(app.confirmingDelete)app.save(true);else app.confirmingDelete=true}}
         }
         Text {width:parent.width;text:app.message||(page.draft&&!page.draft.writable?"Read-only · edit recurring items and invitations in Nextcloud":"Saved on the tablet until you tap Sync.");font.weight:Font.DemiBold;font.pixelSize:20;wrapMode:Text.Wrap;color:"black"}
         Text {text:"Swipe left from the right edge to go back";font.weight:Font.DemiBold;font.pixelSize:18;color:"black"}

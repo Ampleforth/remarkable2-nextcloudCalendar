@@ -28,7 +28,7 @@ Item {
                 Text {x:20;anchors.verticalCenter:parent.verticalCenter;text:section;font.pixelSize:24;font.bold:true;color:"black"}
             }
             Rectangle {
-                width:parent.width;height:Math.max(112,title.implicitHeight+metadata.implicitHeight+32);radius:16;color:"white";border.color:"#cccccc"
+                width:parent.width;height:Math.max(112,title.implicitHeight+metadata.implicitHeight+32);objectName:"taskCard";radius:16;color:Theme.calendarFill(modelData.calendar,"white");border.color:"#cccccc"
                 CheckMark {
                     x:22;y:30;width:40;height:40;checked:!!modelData.completed
                     MouseArea {anchors.fill:parent;enabled:modelData.writable&&!app.status.busy;onClicked:app.toggleTask(modelData)}

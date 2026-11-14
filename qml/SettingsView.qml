@@ -22,6 +22,7 @@ Rectangle {
             Field {objectName:"passwordField";width:parent.width;label:"App password";value:app.connectionDraft.app_password?"••••••••":(app.connectionDraft.has_password?"Saved · leave blank to keep it":"Tap to enter app password");editable:!app.status.busy&&!app.connectionSaving;onActivated:app.field="connection.app_password"}
             Action {width:230;label:app.connectionSaving?"Saving…":"Save & sync";enabled:!app.status.busy&&!app.connectionSaving;onTriggered:app.saveConnection()}
             Text {width:parent.width;text:app.message||app.status.message;font.weight:Font.DemiBold;font.pixelSize:21;wrapMode:Text.Wrap;color:"black"}
+            Action {objectName:"repurposeCalendarToggle";width:form.width;checkable:true;checked:app.launcherEnabled;label:"Repurpose Meeting Notes Calendar Icon to open Nextcloud Calendar";enabled:!app.launcherSaving;onTriggered:app.saveLauncher()}
             Text {text:"Time format";font.pixelSize:28;font.bold:true;color:"black"}
             Row {spacing:12
                 Action {width:170;label:"12-hour";selected:app.timeFormat==="12h";onTriggered:app.savePreference("time_format","12h")}
@@ -33,6 +34,13 @@ Rectangle {
                 required property var modelData
                 width:form.width;checkable:true;checked:modelData.enabled;label:modelData.name+(modelData.writable?"":" · read-only");enabled:!app.status.busy
                 onTriggered:app.request("POST","/collections",{id:modelData.id,enabled:!modelData.enabled},function(){app.refresh()})
+            }}
+            Text {visible:Theme.colorDisplay;text:"Calendar & task list colors";font.pixelSize:28;font.bold:true;color:"black"}
+            Repeater {model:Theme.colorDisplay?app.status.collections:[];delegate:Row {
+                required property var modelData
+                width:form.width;spacing:16
+                Rectangle {width:42;height:42;anchors.verticalCenter:parent.verticalCenter;radius:8;color:Theme.calendarColor(modelData.id);border.color:"black"}
+                Action {id:colorPicker;objectName:"calendarColorPicker";width:parent.width-58;dropdown:true;label:modelData.name+" · "+Theme.colorLabel(modelData.id);enabled:!app.status.busy;onTriggered:app.chooseCalendarColor(colorPicker,modelData.id)}
             }}
             Text {text:"Pending changes: "+app.status.pending.length;font.pixelSize:28;font.bold:true;color:"black"}
             Repeater {model:app.status.pending;delegate:Column {

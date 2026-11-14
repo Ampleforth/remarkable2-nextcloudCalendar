@@ -1,221 +1,176 @@
-# Installation on reMarkable 2
+# Install Nextcloud Calendar 0.2.0
 
-Use the AppLoad bundle for a direct install or the signed local APK if you
-already use Vellum. Both downloads are on the [v0.1.8 release page](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/tag/v0.1.8).
+Download the portable archive for your tablet from
+[GitHub Releases](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/latest).
+The archives include the AppLoad app, installer, matching source, docs and licenses.
 
-## 1. Prepare the tablet and computer
+| Tablet | Archive suffix | Status |
+| --- | --- | --- |
+| reMarkable 1 / 2 | `rm1-rm2-armv7` | RM2 tested on-device; RM1 confirmed working by the user |
+| Paper Pro / Paper Pro Move | `paper-pro-aarch64` | Experimental; built and tested off-device, no physical hardware validation |
 
-You need a reMarkable 2, root SSH access to the tablet, and an HTTPS Nextcloud
-account with at least one calendar or task list. Connect the tablet to Wi-Fi
-for sync. Run computer-side commands in a Linux or macOS terminal, or in
-Ubuntu under WSL on Windows. The installer uses Bash, OpenSSH (`ssh` and
-`scp`), and `tar`.
+Use the matching architecture: the ARMv7 binary does not run on Paper Pro/Move.
+Color support is detected from known Paper Pro/Move model identifiers; RM1, RM2
+and unknown devices retain the original grayscale appearance. Matching CPU
+architecture alone does not establish AppLoad, firmware or display compatibility.
 
-Install [XOVI and its Qt resource rebuilder](https://github.com/asivery/xovi)
-and [ARM32 AppLoad](https://github.com/asivery/rm-appload) builds that match
-your tablet firmware. Follow their upstream setup instructions first. Confirm that AppLoad opens before continuing. The app was
-tested with RM2 firmware 3.27.3.0, Qt 6.8.2 and AppLoad 0.5.3.
+## Requirements
 
-Set up SSH access to the tablet. The commands below use `rm2` as an example SSH
-alias; replace it with your own alias or `root@TABLET_ADDRESS`. No particular
-network address, server, jump host or SSH key is required by this app. If you
-use a USB connection, the tablet normally uses `10.11.99.1` over USB.
+- Working XOVI, Qt resource rebuilder, and AppLoad for your tablet and firmware.
+  The tested RM2 setup uses firmware **3.27.3.0**, Qt **6.8.2**, AppLoad **0.5.3**.
+- Root SSH access for installation and Wi-Fi for sync.
+- An HTTPS Nextcloud server with Calendar/Tasks and a dedicated app password.
 
-From your computer, verify the connection before installing:
+Install XOVI/AppLoad using their upstream instructions:
+[XOVI](https://github.com/asivery/xovi),
+[AppLoad](https://github.com/asivery/rm-appload).
+This release does not replace firmware, XOVI, AppLoad or system libraries.
+The older Vellum recipe in `packaging/vellum/VELBUILD` remains pinned to 0.1.8;
+use the portable 0.2.0 archive for the features documented here.
 
-```sh
-ssh rm2 'uname -m && id -u && test -f /home/root/xovi/extensions.d/appload.so'
-```
+## Portable installation
 
-Expect `armv7l` and `0` on separate lines, followed by a successful exit.
-Check your SSH target and AppLoad setup if the command fails.
-
-## 2. Verify and unpack the download
-
-Download the ARMv7 archive and `SHA256SUMS` from the same release. On a computer
-with `sha256sum` and `tar`, in the download directory:
-
-```sh
-sha256sum -c SHA256SUMS
-tar -xzf remarkable2-nextcloudCalendar-v0.1.8-rm2-armv7.tar.gz
-cd remarkable2-nextcloudCalendar-v0.1.8-rm2-armv7
-```
-
-Use the version matching the archive you downloaded. On macOS, use
-`shasum -a 256 ARCHIVE_NAME` and compare it to `SHA256SUMS`.
-
-## 3. Install the bundle
-
-Close Nextcloud Calendar on the tablet. Run the included installer from the
-extracted folder:
-
-```sh
-./install.sh rm2
-```
-
-It verifies ARMv7 and AppLoad, stages the bundle, and backs up an existing app and
-its offline state before replacing the app directory. It does not change saved
-connection credentials, install system dependencies, or restart the tablet UI.
-SSH authentication stays in your terminal; do not put passwords in arguments.
-
-For manual installation, copy `nextcloud-calendar/` to:
-
-```text
-/home/root/xovi/exthome/appload/nextcloud-calendar/
-```
-
-The folder must contain `manifest.json`, `resources.rcc`, `icon.png`, and the
-executable `backend/entry`. Keep the bundled license files with it. The backend
-must have executable permissions. Close the app before replacing its files.
-
-Open AppLoad and tap **Reload** after all AppLoad apps are closed. Then open
-**Nextcloud Calendar**. If the launcher still shows an old icon, close and reopen
-AppLoad; its image cache can retain an earlier icon until the tablet UI reloads.
-
-## 4. Enter your connection
-
-1. Sign in to Nextcloud in a browser. In your account's **Personal settings →
-   Security**, find the devices and sessions section. Create an app password
-   named **reMarkable Calendar** and copy it when Nextcloud displays it.
-   [Nextcloud session management](https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html)
-2. In **Nextcloud Calendar → Settings**, enter your Nextcloud HTTPS base URL,
-   including any installation subpath, and your Nextcloud username. For example,
-   use `https://cloud.example.com/nextcloud` if that is where you sign in.
-3. Enter the app password, tap **Save & sync**, and wait for sync to finish.
-   Enable the calendars and task lists you want to see in Settings.
-4. In a writable test calendar, create a test event. Tap **Sync** and confirm it
-   appears in Nextcloud. If you use Tasks, repeat with a test task. Saving on the
-   tablet queues the change. **Sync** sends the queued changes to Nextcloud.
-
-Credentials are saved only on the tablet, at:
-
-```text
-/home/root/.config/nextcloud-calendar/config.json
-```
-
-The app creates this file with permissions `600`. A saved password is represented
-by a placeholder in Settings; it is never returned by the connection API.
-
-## Install a local Vellum package
-
-This is a locally signed package for the reMarkable 2. It requires `rm2` and
-`appload>=0.5.3` in Vellum. Install Vellum and compatible AppLoad packages
-using [Vellum's setup guide](https://github.com/vellum-dev/vellum). reManager
-can set up Vellum and install its dependencies. The local APK install runs in
-the tablet terminal. [reManager](https://github.com/rmitchellscott/reManager)
-
-1. Download `nextcloud-calendar-0.1.8-r0.apk`, its `.rsa.pub` public key, and
-   `VELLUM-SHA256SUMS` from the same release. Verify with
-   `sha256sum -c VELLUM-SHA256SUMS` in your downloads folder.
-2. Close Nextcloud Calendar. If you previously used the manual installer, move
-   `/home/root/xovi/exthome/appload/nextcloud-calendar` to a backup folder
-   outside AppLoad before switching to Vellum. Keep your config and state files.
-3. Transfer the APK and its public key to `/home/root/` on the tablet using SSH
-   file transfer or reManager's file browser.
-4. In the tablet terminal, replace `PACKAGE-KEY.rsa.pub` with the downloaded key
-   filename and run:
+1. Download the correct archive and `SHA256SUMS`; verify its checksum.
+2. Extract it and enter its directory, for example:
 
    ```sh
-   cp /home/root/PACKAGE-KEY.rsa.pub /home/root/.vellum/etc/apk/keys/
-   /home/root/.vellum/bin/vellum add /home/root/nextcloud-calendar-0.1.8-r0.apk
+   tar -xzf remarkable2-nextcloudCalendar-v0.2.0-rm1-rm2-armv7.tar.gz
+   cd remarkable2-nextcloudCalendar-v0.2.0-rm1-rm2-armv7
    ```
 
-5. Reload AppLoad, open Nextcloud Calendar, and connect your account as above.
-   Update by installing a newer signed APK. Remove it with
-   `vellum del nextcloud-calendar`.
+3. Close Nextcloud Calendar on the tablet, then run:
 
-The APK signature and bundle contents were checked locally. The manual bundle
-was tested on the tablet. Catalog installation requires a separate Vellum
-submission and review. Once listed, the same catalog entry serves reManager.
+   ```sh
+   ./install.sh SSH_ALIAS_OR_ROOT_AT_TABLET_ADDRESS
+   ```
 
-## Build and install from source
+   The installer checks the bundle's architecture against the tablet, requires root
+   and AppLoad, backs up the previous app and cache, and installs the new bundle.
+   It retains your credentials, pending edits, captures, and display preferences.
 
-On your computer, install Git, [Go 1.25 or later](https://go.dev/dl/), Qt 6
-resource tools, librsvg's `rsvg-convert`, and Python 3. For example, on Ubuntu
-or Ubuntu under WSL, install the non-Go build tools with:
+4. Close other AppLoad apps, tap AppLoad Reload, and open **Nextcloud Calendar**.
+   Optional hooks below need a separate XOVI reload.
 
-```sh
-sudo apt update
-sudo apt install git openssh-client qt6-base-dev-tools librsvg2-bin python3
-```
+On macOS, use `shasum -a 256` instead of `sha256sum`. An aarch64 archive has the
+same `nextcloud-calendar/` directory inside; follow the same installation steps.
+Do not install an experimental bundle over a working setup without keeping the
+backup printed by the installer.
 
-Clone the release tag, confirm that `rcc` is from Qt 6, and build:
+## Connect Nextcloud
 
-```sh
-git clone --branch v0.1.8 https://github.com/Ampleforth/remarkable2-nextcloudCalendar.git
-cd remarkable2-nextcloudCalendar
-go version
-/usr/lib/qt6/libexec/rcc --version
-RCC=/usr/lib/qt6/libexec/rcc ./scripts/build.sh
-./scripts/package.sh 0.1.8
-```
+1. In Nextcloud, create an app password in Settings → Security → Devices & sessions.
+2. Open **Nextcloud Calendar → Settings** and enter the HTTPS server base URL,
+   username and app password. Use the base URL, not an individual CalDAV resource.
+3. Tap **Save & sync** and select the calendars/task lists you want to display.
 
-If Qt is installed elsewhere, set `RCC` to the actual Qt 6 compiler path.
-The build runs Go tests and cross-compiles the static ARMv7 backend. Check
-`dist/nextcloud-calendar/` for the manifest, icon, resources, and
-`backend/entry`. The `release/` directory contains the archive and checksums.
-Follow the archive installation steps above to deploy it.
+A blank password retains the saved password only for the same server and username.
+Account changes require resolving pending edits first and clear downloaded data
+and account-specific colors. Configuration and cache files are private (`600`),
+but stored without encryption. See [SECURITY.md](SECURITY.md).
+
+## Color devices and calendar/list colors
+
+On recognized Paper Pro/Move models, Settings shows **Calendar & task list colors**.
+Tap a calendar/list and select its color. The choice persists locally and colors
+its timed event blocks, all-day blocks, month labels, and task cards. Selected
+controls use blue accents. The chosen color-device logo has a charcoal calendar,
+multicolor date squares, and a blue Nextcloud symbol. These settings do not change
+Nextcloud's server-side colors. Names and text remain readable independent of color.
+
+RM1/RM2 keep the existing monochrome logo, event fills, task cards and controls;
+color settings are hidden. Missing/unknown device identity defaults to grayscale.
+Physical color-panel rendering and refresh behavior have not been validated.
+
+## Optional lasso-to-task capture (firmware 3.27.x)
+
+This feature adapts [jdkruzr's reTaskable](https://github.com/jdkruzr/reTaskable)
+handwriting capture hook. It uses reMarkable's existing recognition flow without
+modifying the notebook. Recognition requires Wi-Fi and a signed-in reMarkable
+account; the dialog offers manual text entry if recognition is unavailable.
+
+1. Open Nextcloud Calendar once to create the private intake directory.
+2. Copy the bundled `nextcloud-calendar/xovi/nextcloudCalendarSend.qmd` to
+   `/home/root/xovi/exthome/qt-resource-rebuilder/` and reload XOVI using your
+   normal device procedure. Avoid enabling reTaskable's capture hook alongside it:
+   both patch the same selection handlers. Do not enable on other firmware lines.
+3. Lasso handwriting, tap the new checkmark, review the text, and tap Create.
+   Repeat to queue multiple captures.
+4. Open Nextcloud Calendar. **Tasks** stays at the far right. Immediately to its
+   left, **Import Lasso Task** appears for one capture, or **Import 3 Lasso Tasks**
+   for three, for example. It is hidden when no captures are waiting.
+5. Tap Import. The editor shows progress such as **Lasso Task 1 of 3**. Choose
+   a list, adjust dates/text, and Save to open the next capture automatically.
+   **Discard** dismisses that capture without creating/deleting a calendar task
+   or changing the notebook, then opens the next. **Cancel** stops the sequence
+   and leaves the current and remaining captures waiting.
+6. Tap **Sync** once to upload all saved tasks.
+
+Source notebook name, document UUID and page index are kept in Description.
+Jump-back navigation and background sync are not included. Captures remain in
+`/home/root/.local/share/nextcloud-calendar/intake/`; a durable consumed-ID ledger
+prevents saved or discarded captures from returning after restart. Unsaved captures
+are not account-bound: review the active account and destination before saving.
+Removing only `nextcloudCalendarSend.qmd` and reloading XOVI removes the hook.
+The ARMv7 app's RM1 confirmation does not establish separate RM1 hook compatibility.
+
+## Optional meeting-notes icon shortcut (firmware 3.27.3.0)
+
+Copy `nextcloud-calendar/xovi/nextcloudCalendarLauncher.qmd` into the same resource
+rebuilder directory, close the app, and reload XOVI once. The home-screen calendar
+icon then opens Nextcloud Calendar. This hook is restricted to firmware 3.27.3.0.
+
+In Settings, **Repurpose Meeting Notes Calendar Icon to open Nextcloud Calendar**
+switches between Nextcloud Calendar and the original meeting-note behavior.
+The default is enabled. Changes persist and apply within roughly one second,
+without another restart. The hook reads only the non-secret `launcher.json`
+preference and works while the app is closed. Disabled restores the original
+meeting-note action and its visibility rules. Remove only the launcher QMD and
+reload XOVI to remove the shortcut entirely. Hook behavior on color hardware has
+not been physically verified.
 
 ## Timezone and manual configuration
 
-The default timezone is UTC. For another timezone, close the app, copy its config
-to your computer, and change only the `timezone` value in a local editor. Use a
-valid IANA name, for example `Europe/London`. Copy it back with permissions `600`,
-then reopen the app. The existing password remains in this private file, so keep
-it out of source control, screenshots, tickets and terminal output.
+Times default to UTC. Close the app before changing
+`/home/root/.config/nextcloud-calendar/config.json`. Add an IANA timezone such as
+`"timezone": "America/Phoenix"`, keep permissions `600`, then reopen the app.
+See `config.example.json` for the other fields. Never commit this private file.
+The 12/24-hour display setting is available in the app.
 
-You can also start from `config.example.json`, replacing all placeholders with
-your own settings. Keep the file private on your computer, create the tablet's
-config directory with permissions `700`, and install the file with permissions
-`600`. Avoid pasting credentials into shell command arguments or shared logs.
+## Build from source
 
-An optional browser authorization helper is included with the source repository:
+Requirements: Go 1.25+, Qt 6 `rcc`, librsvg's `rsvg-convert`; Python 3 for packaging
+checks and screenshot helpers. QML UI tests use `qmltestrunner`.
 
 ```sh
-python3 scripts/connect.py --server https://cloud.example.com --timezone UTC --output /private/path/config.json
+git clone --branch v0.2.0 https://github.com/Ampleforth/remarkable2-nextcloudCalendar.git
+cd remarkable2-nextcloudCalendar
+./scripts/build.sh
+./scripts/package.sh 0.2.0 arm
+CALENDAR_GOARCH=arm64 ./scripts/build.sh
+./scripts/package.sh 0.2.0 arm64
 ```
 
-It obtains a dedicated app password through Nextcloud login flow v2. It prints
-only the browser authorization URL and saves credentials to the specified private
-file, which you can then transfer to the tablet.
+Set `GO`/`RCC` to executable paths if necessary. Builds are static (`CGO_ENABLED=0`)
+Linux binaries with trimmed paths. ARMv7 output is `dist/nextcloud-calendar/`;
+aarch64 output is `dist/nextcloud-calendar-arm64/`. Packaging produces separate
+architecture archives, corresponding source, per-archive checksums and `SHA256SUMS`.
+Do not infer tablet validation from an aarch64 build or off-device test pass.
 
-## Updates and removal
+## Updates, backups and troubleshooting
 
-Download the new archive and checksum, close the running app, and repeat the
-install and reload steps. Keep your backup until the new version is
-working. Backups are stored under:
+Close the app before updating. The installer prints the backup directory under
+`/home/root/.local/share/nextcloud-calendar/backups/`; retain it until verified.
+To restore, close the app, restore the previous bundle from that backup, and reload
+AppLoad. If rolling back a hook, restore/remove its QMD and reload XOVI too.
 
-```text
-/home/root/.local/share/nextcloud-calendar/backups/
-```
+- Cannot sync: check Wi-Fi, HTTPS base URL, username and app password.
+- No writable list: Sync, then select an account collection supporting tasks/events.
+- Conflict: inspect Pending changes in Settings. Retry ordinary errors; discard
+  local changes to accept server data when a conflict requires it.
+- Import missing: the button appears only with waiting captures. Confirm hook
+  installation, firmware, and that capture creation finished.
+- Color absent: RM1/RM2 intentionally remain monochrome; unknown models fall back
+  to grayscale. Color hardware support remains experimental.
+- Bad architecture: use the matching archive; do not rename binaries to bypass checks.
 
-The cache/outbox is at `~/.local/share/nextcloud-calendar/state.json`. It may contain
-unsynced edits. Preserve it before removing or downgrading the app. The installer
-never restores or removes your credentials automatically.
-
-To remove the app, close it, remove only its AppLoad bundle directory, then tap
-AppLoad Reload. Data and credentials remain until you deliberately remove them.
-If you stop using the app, revoke its app password in Nextcloud's Security settings.
-
-## Troubleshooting
-
-- **SSH times out:** check the tablet is awake, verify the address or alias, and
-  try USB if Wi-Fi SSH is unavailable.
-- **Checksum mismatch:** download the archive and checksum again from the same release.
-- **App opens blank or still shows the old UI:** close AppLoad apps and tap
-  **Reload**. Verify the bundle has the four expected files and executable backend.
-- **AppLoad missing:** install compatible XOVI/AppLoad dependencies first.
-- **Wrong architecture:** this archive is ARMv7 for RM2, not ARM64.
-- **Cannot connect:** verify Wi-Fi, the HTTPS base URL, username, app password,
-  trusted TLS certificate chain, and access to the server from the tablet.
-- **Read-only list:** the server's advertised CalDAV privileges are honored.
-- **Unscheduled tasks:** set Scheduled for (`DTSTART`), or choose Due date sorting.
-- **Write conflict:** inspect the pending change in Settings. Discard the local
-  edit to keep the server version. A conflict never uses an unconditional overwrite.
-- **Time offset:** set the correct IANA timezone and reopen the app.
-- **UI errors after a firmware upgrade:** check upstream XOVI/AppLoad compatibility.
-  Do not replace stock Qt/glibc libraries to make an incompatible extension load.
-
-The app is an early community release. Desktop tests and one firmware combination
-have been exercised; verify your own firmware/server combination using a test
-calendar before relying on it for important edits.
+See [development and tests](docs/DEVELOPMENT.md) for validation and limitations.

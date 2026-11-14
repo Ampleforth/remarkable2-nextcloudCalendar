@@ -3,7 +3,7 @@ import QtQuick
 Rectangle {
     id:mark
     property bool checked:false
-    width:30;height:30;radius:5;color:checked?"black":"white";border.color:"black";border.width:2
+    width:30;height:30;radius:5;color:checked?Theme.accent:"white";border.color:"black";border.width:2
     Canvas {
         id:checkCanvas
         anchors.fill:parent

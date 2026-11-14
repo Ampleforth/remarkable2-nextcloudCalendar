@@ -1,8 +1,9 @@
-# reMarkable 2 Nextcloud Calendar
+# reMarkable Nextcloud Calendar
 
-A native calendar and task app for reMarkable 2, synced directly with your own
-Nextcloud server over HTTPS/CalDAV. It uses XOVI and AppLoad, with a static ARMv7
-backend and a grayscale Qt Quick interface.
+A native calendar and task app synced directly with your Nextcloud server over
+HTTPS/CalDAV. It uses XOVI and AppLoad, with ARMv7 builds for reMarkable 1/2 and
+an experimental aarch64 build for Paper Pro/Move. Color devices use color accents;
+grayscale devices retain the monochrome interface.
 
 | Week timeline | Day timeline |
 | --- | --- |
@@ -24,11 +25,21 @@ backend and a grayscale Qt Quick interface.
   Tasks without a scheduled/start date are shown as **Unscheduled**, not assigned
   their due date as a substitute. Priority sorting puts highest priority first.
 - Discover shared calendars, task capabilities, and write privileges.
+- Optional lasso-to-task handwriting capture on firmware 3.27.x; import and review
+  captured tasks using the counted Import button to the left of Tasks. Save or
+  Discard advances through the queue, with progress such as **Lasso Task 1 of 3**. See [setup](INSTALL.md#optional-lasso-to-task-capture-firmware-327x).
 - Local offline cache and persistent pending edits; manual **Sync** over Wi-Fi.
 - Conditional CalDAV writes and visible conflict/error handling.
 - In-app server URL, username, and masked app-password entry. Each installation
   uses its own credentials and cache; no server or account is preconfigured.
-- Rounded monochrome controls, a calendar/Nextcloud launcher icon, and a custom
+- Per-calendar/task-list colors in Settings on color devices. Soft colored event
+  blocks, all-day events, task cards, and blue selected controls; settings persist
+  locally without changing Nextcloud's own calendar colors. Unknown devices default
+  to grayscale. The color logo uses a charcoal calendar and blue Nextcloud symbol.
+- Optional home-screen meeting-notes icon shortcut. In Settings, toggle
+  **Repurpose Meeting Notes Calendar Icon to open Nextcloud Calendar** to switch
+  between this app and the stock action without restarting the UI after setup.
+- Rounded controls, a calendar/Nextcloud launcher icon, and a custom
   US mobile QWERTY keyboard with equal-sized letter keys.
 
 Recurring events are viewable, including ordinary detached exceptions, but
@@ -36,9 +47,25 @@ recurring items and meeting invitations are read-only. There is no guest
 management, automatic background sync, or event drag-to-reschedule.
 See [limitations](docs/DEVELOPMENT.md#limitations).
 
+## Color-device screenshots
+
+These are real QML renders using fictional data, not photographs of color hardware.
+The four design explorations and chosen logo are retained in
+[design options](docs/design-options/README.md); style **C: Color accents** was selected.
+
+| Color week | Color day |
+| --- | --- |
+| ![Color-coded week](docs/images/color-week.png) | ![Color-coded day](docs/images/color-day.png) |
+
+| Task list colors | Calendar colors in Settings | Lasso import progress |
+| --- | --- | --- |
+| ![Tinted task cards](docs/images/color-tasks.png) | ![Color settings](docs/images/color-settings.png) | ![Lasso task progress and Discard](docs/images/lasso-import.png) |
+
 ## Requirements
 
-- **reMarkable 2**, ARMv7. The supplied binary is not for Paper Pro/Move.
+- **reMarkable 1 or 2:** ARMv7 bundle. RM2 tested on-device; RM1 confirmed working
+  by the user. **Paper Pro/Move:** separate aarch64 bundle, built and tested off-device
+  only; physical device compatibility and color rendering remain unverified.
 - XOVI and its Qt resource rebuilder installed and working.
 - AppLoad compatible with your firmware. The tested combination is firmware
   **3.27.3.0**, Qt **6.8.2**, and **AppLoad 0.5.3 ARM32**.
@@ -55,7 +82,7 @@ install or replace XOVI, AppLoad, firmware, or system libraries.
 
 ## Install
 
-Download the RM2 ARMv7 archive and `SHA256SUMS` from [GitHub Releases](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/latest).
+Download the ARMv7 or aarch64 archive matching your tablet and `SHA256SUMS` from [GitHub Releases](https://github.com/Ampleforth/remarkable2-nextcloudCalendar/releases/latest).
 Follow [the installation guide](INSTALL.md) for tablet setup, direct install,
 Nextcloud sign-in, source builds, or a local Vellum install. A ready-to-install bundle, installer, licenses
 and these instructions are included in the archive. No compiler is needed to use it.
@@ -100,7 +127,9 @@ optional setup/lifecycle helpers. `qmltestrunner` is used by the UI tests.
 
 ```sh
 ./scripts/build.sh
-./scripts/package.sh 0.1.8
+./scripts/package.sh 0.2.0 arm
+CALENDAR_GOARCH=arm64 ./scripts/build.sh
+./scripts/package.sh 0.2.0 arm64
 ```
 
 If necessary, specify executable locations:
@@ -109,7 +138,8 @@ If necessary, specify executable locations:
 GO=/path/to/go RCC=/path/to/rcc ./scripts/build.sh
 ```
 
-`dist/nextcloud-calendar/` is the AppLoad bundle. `release/` contains a portable
+`dist/nextcloud-calendar/` is the ARMv7 AppLoad bundle;
+`dist/nextcloud-calendar-arm64/` is the separate aarch64 bundle. `release/` contains a portable
 installation archive and checksums. Builds use `CGO_ENABLED=0`, Linux ARMv7, and
 `-trimpath`; no desktop build paths or runtime configuration files are included.
 
@@ -129,3 +159,12 @@ The UI was inspired by [Nicko Guyer's reMarkable Calendar](https://github.com/ng
 
 This is an independent community app. reMarkable and Nextcloud names and marks
 belong to their respective owners.
+
+## Thanks to reTaskable
+
+The handwriting lasso capture hook is adapted from **[jdkruzr](https://github.com/jdkruzr)'s
+[reTaskable](https://github.com/jdkruzr/reTaskable)**, under GPL-3.0-only. Their
+non-destructive handwriting capture, recognition dialog, and source-note metadata
+made this integration possible. Our Go backend adds the review queue, progress,
+durable duplicate prevention, and Discard flow. See the exact upstream commit and
+license attribution in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

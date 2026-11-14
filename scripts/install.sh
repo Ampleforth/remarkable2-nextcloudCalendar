@@ -13,9 +13,14 @@ target=$1
 command -v ssh >/dev/null
 command -v scp >/dev/null
 command -v tar >/dev/null
-ssh "$target" 'test "$(uname -m)" = armv7l && test "$(id -u)" = 0 && test -f /home/root/xovi/extensions.d/appload.so' || {
-  echo 'Requires an ARMv7 reMarkable 2, root SSH access and working AppLoad.' >&2; exit 1;
-}
+expected_machine=$(cat nextcloud-calendar/architecture)
+case "$expected_machine" in armv7l|aarch64) ;; *) echo 'Invalid bundle architecture.' >&2; exit 1 ;; esac
+ssh "$target" sh -s -- "$expected_machine" <<'CHECK'
+set -eu
+test "$(uname -m)" = "$1"
+test "$(id -u)" = 0
+test -f /home/root/xovi/extensions.d/appload.so
+CHECK
 local_stage=$(mktemp -d)
 trap 'rm -rf -- "$local_stage"' EXIT
 tar -czf "$local_stage/app.tar.gz" nextcloud-calendar

@@ -13,6 +13,14 @@ TestCase {
     height: 1872
     visible: true
     when: windowShown
+    property bool colorDevice: false
+    property var calendarColors: ({})
+    property var captures: []
+    property bool launcherEnabled: true
+    property bool failLauncher: false
+    property bool failDiscard: false
+    property bool failSave: false
+    property int captureReads: 0
     property var submitted: null
     function initTestCase() {
         testCase.Window.window.width=width
@@ -23,8 +31,27 @@ TestCase {
         id: app
         anchors.fill: parent
         function request(method, path, data, done) {
-            if (path === "/status") {
-                done({busy:false, message:"Test calendar", last_sync:"", pending:[], collections:[{id:"test", name:"Personal", events:true, tasks:true, enabled:true, writable:true}]})
+            if (path === "/captures") {
+                testCase.captureReads++
+                done({captures:testCase.captures})
+            } else if (path === "/captures/discard") {
+                testCase.submitted=data
+                if(testCase.failDiscard){message="Discard failed";saving=false;return}
+                testCase.captures=testCase.captures.filter(function(c){return c.id!==data.id})
+                done({ok:true})
+            } else if(path==="/launcher") {
+                if(method==="POST") {
+                    testCase.submitted=data
+                    if(testCase.failLauncher){message="Setting failed";launcherSaving=false;return}
+                    testCase.launcherEnabled=data.enabled
+                }
+                done({enabled:testCase.launcherEnabled})
+            } else if(path==="/colors") {
+                testCase.submitted=data
+                var colors=JSON.parse(JSON.stringify(testCase.calendarColors));colors[data.id]=data.color;testCase.calendarColors=colors
+                var next=JSON.parse(JSON.stringify(status));next.calendar_colors=colors;done(next)
+            } else if (path === "/status") {
+                done({color_display:testCase.colorDevice,calendar_colors:testCase.calendarColors,busy:false, message:"Test calendar", last_sync:"", pending:[], collections:[{id:"test", name:"Personal", events:true, tasks:true, enabled:true, writable:true}]})
             } else if (path.indexOf("/items?") === 0) {
                 done({items:[{id:"one", calendar:"test", calendar_name:"Personal", kind:"VEVENT", title:"Morning planning", start:iso(selected)+"T09:00", end:iso(selected)+"T10:00", writable:true, all_day:false, pending:false, description:"", location:"", revision:"one"}]})
             } else if(path==="/preferences") {
@@ -35,13 +62,149 @@ TestCase {
                 done({server:"https://nextcloud.example",username:"test",has_password:true})
             } else {
                 testCase.submitted=data
+                if(path==="/items"&&method==="POST") {
+                    if(testCase.failSave){message="Save failed";saving=false;return}
+                    if(data.capture_id)testCase.captures=testCase.captures.filter(function(c){return c.id!==data.capture_id})
+                }
                 done({ok:true})
             }
         }
     }
     function init() {
+        colorDevice=false;calendarColors={}
         app.draft=null;app.field="";app.settingsOpen=false;app.view="week";app.taskList="";app.showCompleted=false;app.selected=new Date(2026,10,10,12);app.refresh()
-        submitted=null
+        launcherEnabled=true;failLauncher=false;app.launcherEnabled=true;app.launcherSaving=false
+        submitted=null;captures=[];captureReads=0;failSave=false;failDiscard=false;app.pendingCaptureCount=0;app.captureIndex=0;app.captureTotal=0
+    }
+    function test_color_device_palette_and_gray_fallback() {
+        compare(Calendar.Theme.colorDisplay,false)
+        var block=findChild(app,"timedEventBlock"),logo=findChild(app,"mainLogo")
+        verify(block!==null)
+        compare(block.color,Qt.color("#e5e5e5"))
+        verify(String(logo.source).endsWith("calendar.svg"))
+        colorDevice=true;calendarColors={test:"#7952b3"};app.refresh()
+        compare(Calendar.Theme.colorDisplay,true)
+        compare(Calendar.Theme.accent,Qt.color("#0082c9"))
+        compare(block.color,Calendar.Theme.tint("#7952b3"))
+        verify(String(logo.source).endsWith("calendar-color.svg"))
+        app.openSettings();wait(30)
+        var chooser=findChild(app,"calendarColorPicker")
+        verify(chooser!==null)
+        app.chooseCalendarColor(chooser,"test")
+        var picker=findChild(app,"choicePicker")
+        compare(picker.options.length,8)
+        picker.choose(1)
+        compare(submitted.id,"test")
+        compare(submitted.color,"#3a9d5d")
+        compare(block.color,Calendar.Theme.tint("#3a9d5d"))
+        colorDevice=false;app.refresh()
+        compare(Calendar.Theme.colorDisplay,false)
+        compare(block.color,Qt.color("#e5e5e5"))
+        compare(Calendar.Theme.accent,Qt.color("black"))
+        verify(String(logo.source).endsWith("calendar.svg"))
+        compare(Calendar.Theme.calendarColors.test,"#3a9d5d")
+    }
+    function test_meeting_calendar_toggle() {
+        app.openSettings()
+        var toggle=findChild(app,"repurposeCalendarToggle")
+        compare(toggle.label,"Repurpose Meeting Notes Calendar Icon to open Nextcloud Calendar")
+        verify(toggle.checked)
+        toggle.triggered()
+        compare(submitted.enabled,false)
+        verify(!toggle.checked)
+        app.closeSettings();app.openSettings()
+        verify(!toggle.checked)
+        failLauncher=true;toggle.triggered()
+        verify(!toggle.checked)
+        verify(!app.launcherSaving)
+        failLauncher=false;toggle.triggered()
+        verify(toggle.checked)
+    }
+    function test_import_button_visibility_and_location() {
+        var button=findChild(app,"importLassoTask"),tasks=findChild(app,"tasksNavigation")
+        verify(button!==null)
+        app.refreshCaptureCount()
+        verify(!button.visible)
+        captures=[{id:"first",summary:"A task",description:""}]
+        app.refreshCaptureCount();wait(30)
+        verify(button.visible)
+        compare(button.label,"Import Lasso Task")
+        compare(button.parent,tasks.parent)
+        verify(button.x<tasks.x)
+        verify(tasks.x+tasks.width<=tasks.parent.width)
+        mouseClick(button,button.width/2,button.height/2)
+        compare(app.draft.capture_id,"first")
+        app.save(false)
+        verify(!button.visible)
+        compare(app.draft,null)
+    }
+    function test_capture_counts_progress_and_discard() {
+        captures=[{id:"first",summary:"First",description:""},{id:"second",summary:"Second",description:""},{id:"third",summary:"Third",description:""}]
+        app.refreshCaptureCount()
+        var button=findChild(app,"importLassoTask"),title=findChild(app,"editorTitle"),discard=findChild(app,"editorDelete")
+        compare(button.label,"Import 3 Lasso Tasks")
+        app.openCapture()
+        compare(title.text,"Lasso Task 1 of 3")
+        compare(discard.label,"Discard");verify(discard.enabled)
+        discard.triggered()
+        compare(submitted.id,"first")
+        compare(captures.length,2)
+        compare(title.text,"Lasso Task 2 of 3")
+        compare(button.label,"Import 2 Lasso Tasks")
+        app.save(false)
+        compare(title.text,"Lasso Task 3 of 3")
+        compare(button.label,"Import Lasso Task")
+        discard.triggered()
+        compare(app.draft,null)
+        verify(!button.visible)
+        app.newItem()
+        compare(title.text,"Task")
+        compare(discard.label,"Delete");verify(!discard.enabled)
+    }
+    function test_capture_discard_failure_keeps_current_capture() {
+        captures=[{id:"first",summary:"First",description:""},{id:"second",summary:"Second",description:""}]
+        app.openCapture();failDiscard=true;app.discardCapture()
+        compare(app.draft.capture_id,"first")
+        compare(app.captureIndex,1)
+        compare(captures.length,2)
+        failDiscard=false;app.discardCapture()
+        compare(app.draft.capture_id,"second")
+        compare(app.captureIndex,2)
+    }
+    function test_capture_import_advances_until_empty() {
+        captures=[{id:"first",summary:"First task",description:"Note 1"},{id:"second",summary:"Second task",description:"Note 2"}]
+        app.openCapture()
+        compare(app.draft.capture_id,"first")
+        app.setField("title","Edited first task")
+        app.save(false)
+        compare(submitted.title,"Edited first task")
+        compare(app.draft.capture_id,"second")
+        compare(app.draft.description,"Note 2")
+        app.save(false)
+        compare(submitted.capture_id,"second")
+        compare(app.draft,null)
+        compare(captures.length,0)
+        compare(captureReads,3)
+        compare(app.message,"All lasso tasks reviewed · tap Sync to upload saved tasks")
+    }
+    function test_capture_cancel_leaves_remaining_tasks() {
+        captures=[{id:"first",summary:"First task",description:""},{id:"second",summary:"Second task",description:""}]
+        app.openCapture();app.save(false)
+        app.cancelEdit()
+        compare(app.draft,null)
+        compare(captures.length,1)
+        compare(captureReads,2)
+        app.openCapture()
+        compare(app.draft.capture_id,"second")
+    }
+    function test_capture_save_failure_does_not_advance() {
+        captures=[{id:"first",summary:"First task",description:""},{id:"second",summary:"Second task",description:""}]
+        app.openCapture();failSave=true;app.save(false)
+        compare(app.draft.capture_id,"first")
+        compare(captures.length,2)
+        compare(captureReads,1)
+        failSave=false;app.save(false)
+        compare(app.draft.capture_id,"second")
     }
     function test_week_and_month() {
         compare(app.eventsOn(app.selected).length,1)
